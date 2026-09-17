@@ -137,7 +137,7 @@ export const Why: React.FC = () => {
               })}
             </g>
           )}
-          {ASSETS.map((a, i) => {
+          {ASSETS.map((a) => {
             const p = ease("back.out(1.5)")(clamp01((t - a.t + 0.3) / 0.6));
             if (p <= 0) return null;
             return (

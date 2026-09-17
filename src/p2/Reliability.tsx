@@ -79,7 +79,7 @@ export const Reliability: React.FC = () => {
           <g transform={`translate(${MX} ${MY + Math.sin(t * 1.4) * 6}) scale(${1.5 * missIn})`}>
             <Interceptor kind="pac3" flame={0.5} />
           </g>
-          {PARTS.map((p, i) => {
+          {PARTS.map((p) => {
             const k = ease("back.out(1.6)")(clamp01((t - p.t + 0.25) / 0.5));
             if (k <= 0) return null;
             const x = MX + p.dx;
