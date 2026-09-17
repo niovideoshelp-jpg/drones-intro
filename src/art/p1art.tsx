@@ -557,3 +557,43 @@ export const Big: React.FC<{ x: number; y: number; text: string; size?: number; 
     {text}
   </text>
 );
+
+/** Scrolling column of scrambling prices — the running theme of this part. */
+export const PriceTicker: React.FC<{ x: number; seed?: number; rows?: number; opacity?: number; speed?: number }> = ({ x, seed = 0, rows = 9, opacity = 0.34, speed = 26 }) => {
+  const t = useTime();
+  const step = 118;
+  const span = rows * step;
+  const digits = (i: number) => {
+    const k = Math.floor(t * 1.6 + i * 3 + seed * 7);
+    const d = Array.from({ length: 6 }, (_, j) => Math.floor(((Math.sin(k * 12.9898 + j * 78.233 + seed) * 43758.5453) % 1 + 1) % 1 * 10)).join("");
+    return `$${d.slice(0, 2)},${d.slice(2, 5)}`;
+  };
+  return (
+    <g opacity={opacity}>
+      {Array.from({ length: rows + 1 }, (_, i) => {
+        const y = 40 + (((i * step - t * speed) % span) + span) % span;
+        return (
+          <g key={i} transform={`translate(${x} ${y})`}>
+            <path d="M-96,0 L96,0" stroke={C.cream} strokeOpacity={0.35} strokeWidth={2} />
+            <text y={-14} textAnchor="middle" fontFamily={F.anton} fontSize={40} fill={i % 3 === 0 ? C.amber : C.cream} letterSpacing={1}>
+              {digits(i)}
+            </text>
+          </g>
+        );
+      })}
+    </g>
+  );
+};
+
+/** Sweeping scan line used over exploded views. */
+export const ScanLine: React.FC<{ x: number; w: number; y0: number; y1: number; color?: string; period?: number }> = ({ x, w, y0, y1, color = C.cyan, period = 3.2 }) => {
+  const t = useTime();
+  const k = ((t % period) / period);
+  const y = y0 + (y1 - y0) * k;
+  return (
+    <g opacity={0.55 + 0.25 * Math.sin(t * 6)}>
+      <path d={`M${x - w / 2},${y} L${x + w / 2},${y}`} stroke={color} strokeWidth={5} />
+      <path d={`M${x - w / 2},${y}` + ` L${x + w / 2},${y}`} stroke={color} strokeWidth={22} opacity={0.18} />
+    </g>
+  );
+};

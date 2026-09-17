@@ -1,6 +1,6 @@
 import React from "react";
 import { C, F } from "../design";
-import { Clipboard, Gear, Pie, Wrench, Big } from "../art/p1art";
+import { Clipboard, Gear, Pie, PriceTicker, Wrench, Big } from "../art/p1art";
 import { Interceptor } from "../art/p1art";
 import { PriceTag, Pulse, Tag } from "../art/ui";
 import { Stage } from "../Stage";
@@ -68,6 +68,10 @@ export const Open: React.FC = () => {
 
   return (
     <Stage>
+      <g opacity={(1 - out) * 0.8}>
+        <PriceTicker x={72} seed={1} opacity={0.3} />
+        <PriceTicker x={1848} seed={5} opacity={0.3} speed={19} />
+      </g>
       <g opacity={1 - out}>
         <g transform={`translate(960 ${ty}) scale(${ts})`}>
           <g transform={`translate(0 -150) scale(${numP})`} opacity={clamp01(numP * 2)}>
@@ -76,16 +80,16 @@ export const Open: React.FC = () => {
             <Big x={0} y={78} text="2" size={220} color={C.amber} />
           </g>
           {(() => {
-            let x = -740;
+            let x = -775;
             return TITLE.map(([w, tw]) => {
-              const width = w.length * 58 + 34;
+              const width = w.length * 60 + 34;
               const p = prog(t, tw - 0.08, tw + 0.35, "back.out(2)");
               const cx = x + width / 2;
               x += width;
               return (
                 <g key={w} transform={`translate(${cx} ${110 + (1 - p) * 40})`} opacity={clamp01(p * 1.5)}>
                   {w === "MATH" && <rect x={-width / 2 + 6} y={24} width={(width - 12) * prog(t, tw + 0.2, tw + 0.7, "power2.out")} height={16} fill={C.amber} />}
-                  <text textAnchor="middle" fontFamily={F.oswald} fontWeight={700} fontSize={108} fill={C.cream} stroke={C.ink} strokeWidth={9} paintOrder="stroke" letterSpacing={2}>
+                  <text textAnchor="middle" fontFamily={F.oswald} fontWeight={700} fontSize={110} fill={C.cream} stroke={C.ink} strokeWidth={10} paintOrder="stroke" letterSpacing={2}>
                     {w}
                   </text>
                 </g>
@@ -117,7 +121,8 @@ export const Open: React.FC = () => {
             <g key={f.key}>
               <path d={`M${f.x},${f.y} L${f.x + (tx - f.x) * flow},${f.y + (ty2 - f.y) * flow}`} stroke={C.cream} strokeWidth={5} strokeDasharray="14 10" strokeDashoffset={-t * 50} opacity={0.7} />
               <g transform={`translate(${f.x} ${f.y + Math.sin(t * 1.6 + i) * 6}) scale(${p})`}>
-                <circle r={130} fill={C.ink} fillOpacity={0.9} stroke={C.amber} strokeWidth={6} />
+                <circle r={158} fill={C.ink} fillOpacity={0.9} stroke={C.amber} strokeWidth={7} />
+                <circle r={178} fill="none" stroke={C.amber} strokeWidth={3} strokeDasharray="10 12" transform={`rotate(${t * 18 * (i % 2 ? -1 : 1)})`} />
                 {f.key === "version" && (
                   <g>
                     <Interceptor kind="aim120" y={-50} s={0.62} />
@@ -134,7 +139,7 @@ export const Open: React.FC = () => {
                 )}
                 {f.key === "rnd" && <Pie s={0.95} split={prog(t, T.split, T.costs, "back.out(2)")} />}
               </g>
-              <Tag x={f.x} y={f.y + 170} text={f.label} p={prog(t, f.t, f.t + 0.7, "none")} size={30} accent={C.amber} />
+              <Tag x={f.x} y={f.y + 200} text={f.label} p={prog(t, f.t, f.t + 0.7, "none")} size={32} accent={C.amber} />
             </g>
           );
         })}

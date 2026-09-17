@@ -36,7 +36,7 @@ const T = {
 export const ATTRITION_RANGE = [T.so - 0.2, P1_DURATION_S] as const;
 
 const LINE_X = 1060;
-const SWARM = Array.from({ length: 14 }, (_, i) => ({
+const SWARM = Array.from({ length: 18 }, (_, i) => ({
   x0: -80 - (i % 4) * 110 - rnd(i, 1) * 60,
   y0: 300 + ((i * 37) % 7) * 75 + rnd(i, 2) * 30,
   survivor: i === 2 || i === 7 || i === 11,
@@ -78,7 +78,7 @@ export const Attrition: React.FC = () => {
               if (boom >= 1) return null;
               return (
                 <g key={i}>
-                  {boom <= 0.15 && <ShahedTop x={x} y={y} r={90} s={0.24} />}
+                  {boom <= 0.15 && <ShahedTop x={x} y={y} r={90} s={0.32} />}
                   {boom > 0 && <Explosion x={x} y={y} p={boom} size={48} seed={90 + i} />}
                 </g>
               );
@@ -86,8 +86,21 @@ export const Attrition: React.FC = () => {
             const passed = x > LINE_X;
             return (
               <g key={i}>
-                <ShahedTop x={x} y={y} r={90} s={0.24} />
+                <ShahedTop x={x} y={y} r={90} s={0.32} />
                 {t > T.few - 0.2 && <circle cx={x} cy={y} r={52 + 5 * Math.sin(t * 8)} fill="none" stroke={C.amber} strokeWidth={6} opacity={passed ? 1 : 0.6} />}
+              </g>
+            );
+          })}
+          {/* interceptors launched from the defended side */}
+          {SWARM.filter((s) => !s.survivor).map((s, k) => {
+            const tk = killT(s.kill);
+            const p = prog(t, tk - 0.5, tk, "power2.in");
+            if (p <= 0 || p >= 1) return null;
+            const y = s.y0 + 30;
+            const x = 1800 - (1800 - (s.x0 + (tk - (T.so - 0.2)) * speed)) * p;
+            return (
+              <g key={`i${k}`} transform={`translate(${x} ${y}) rotate(180) scale(0.26)`}>
+                <Interceptor kind="pac3" flame={1} />
               </g>
             );
           })}

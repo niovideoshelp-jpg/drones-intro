@@ -1,7 +1,7 @@
 import React from "react";
 import { C } from "../design";
 import { ShahedTop } from "../art/drones";
-import { Interceptor, Big } from "../art/p1art";
+import { Interceptor, PriceTicker, Big } from "../art/p1art";
 import { DocPage, PriceTag, Pulse, StrikeLine, Tag } from "../art/ui";
 import { Stage } from "../Stage";
 import { clamp01, ease, prog, useTime, win } from "../lib/kf";
@@ -35,9 +35,9 @@ const T = {
 };
 export const ESTIMATES_RANGE = [T.so - 0.2, T.meanwhile + 0.7] as const;
 
-const AX0 = 460;
-const AX1 = 1460;
-const AY = 640;
+const AX0 = 380;
+const AX1 = 1540;
+const AY = 620;
 
 export const Estimates: React.FC = () => {
   const t = useTime();
@@ -66,20 +66,24 @@ export const Estimates: React.FC = () => {
   const rangeP = prog(t, T.d20 - 0.1, T.d50 + 0.1, "power1.inOut");
   const pin = prog(t, T.d35 - 0.3, T.d35 + 0.2, "bounce.out");
   const leave = prog(t, T.meanwhile - 0.2, T.meanwhile + 0.6, "power3.in");
-  const RX0 = 560;
-  const RX1 = 1360;
-  const RY = 900;
+  const RX0 = 470;
+  const RX1 = 1450;
+  const RY = 920;
   const x35 = RX0 + ((35 - 20) / 30) * (RX1 - RX0);
 
   return (
     <Stage>
+      <g opacity={Math.max(axisA, estA) * 0.8}>
+        <PriceTicker x={72} seed={2} opacity={0.26} />
+        <PriceTicker x={1848} seed={9} opacity={0.26} speed={21} />
+      </g>
       {axisA > 0 && (
         <g opacity={axisA}>
-          <path d={`M${AX0},${AY} L${AX0 + (AX1 - AX0) * axisP},${AY}`} stroke={C.cream} strokeWidth={8} strokeLinecap="round" />
+          <path d={`M${AX0},${AY} L${AX0 + (AX1 - AX0) * axisP},${AY}`} stroke={C.cream} strokeWidth={12} strokeLinecap="round" />
           {Array.from({ length: 11 }, (_, i) => {
-            const x = AX0 + i * 100;
+            const x = AX0 + i * 116;
             const p = prog(t, T.numbers - 0.2 + i * 0.05, T.numbers + 0.2 + i * 0.05, "back.out(2)");
-            return <path key={i} d={`M${x},${AY} L${x},${AY + (i % 5 === 0 ? 40 : 22) * p}`} stroke={C.cream} strokeWidth={5} />;
+            return <path key={i} d={`M${x},${AY} L${x},${AY + (i % 5 === 0 ? 58 : 32) * p}`} stroke={C.cream} strokeWidth={6} />;
           })}
           {band > 0 && (
             <g>
@@ -90,8 +94,8 @@ export const Estimates: React.FC = () => {
                   <stop offset="1" stopColor={C.amber} stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <rect x={960 - 280 * band * breathe} y={AY - 60} width={560 * band * breathe} height={120} fill="url(#ballpark)" />
-              <Big x={960} y={AY - 110} text="≈" size={170 * band} color={C.amber} />
+              <rect x={960 - 360 * band * breathe} y={AY - 80} width={720 * band * breathe} height={160} fill="url(#ballpark)" />
+              <Big x={960} y={AY - 140} text="≈" size={220 * band} color={C.amber} />
             </g>
           )}
           {tagP > 0 && (
@@ -135,8 +139,8 @@ export const Estimates: React.FC = () => {
             const p = cardP(c.t0) * (1 - leave);
             return p > 0 ? (
               <g key={i}>
-                <DocPage x={c.x} y={200 + Math.sin(t * 1.4 + i) * 5} s={0.36 * p} r={i ? 6 : -6} lines={prog(t, c.t0, c.t0 + 1)} chart={prog(t, c.t0 + 0.3, c.t0 + 1.5)} tab={c.tab} />
-                <Tag x={c.x} y={318} text={c.label} p={prog(t, c.tl - 0.05, c.tl + 0.5, "none") * (1 - leave)} size={34} accent={c.tab} />
+                <DocPage x={c.x} y={215 + Math.sin(t * 1.4 + i) * 6} s={0.5 * p} r={i ? 6 : -6} lines={prog(t, c.t0, c.t0 + 1)} chart={prog(t, c.t0 + 0.3, c.t0 + 1.5)} tab={c.tab} />
+                <Tag x={c.x} y={390} text={c.label} p={prog(t, c.tl - 0.05, c.tl + 0.5, "none") * (1 - leave)} size={38} accent={c.tab} />
               </g>
             ) : null;
           })}
@@ -144,11 +148,11 @@ export const Estimates: React.FC = () => {
           {/* the drone */}
           {droneP > 0 && (
             <g transform={`translate(960 ${590 + Math.sin(t * 1.6) * 6}) scale(${droneP * (1 - leave * 0.6)}) scale(${Math.max(0.03, Math.abs(flipX))} 1)`} opacity={1 - leave}>
-              <ShahedTop s={0.92} tone={isGeran ? "#4A504E" : "#C9CCC8"} />
+              <ShahedTop s={1.25} tone={isGeran ? "#4A504E" : "#C9CCC8"} />
             </g>
           )}
-          <Tag x={690} y={600} text="SHAHED-TYPE" p={prog(t, T.drone - 0.1, T.drone + 0.6, "none") * (1 - flip) * (1 - leave)} size={34} accent={C.red} anchor="end" />
-          <Tag x={1230} y={600} text="GERAN-2" p={prog(t, T.geran, T.geran + 0.5, "none") * (1 - leave)} size={40} accent={C.red} anchor="start" />
+          <Tag x={630} y={620} text="SHAHED-TYPE" p={prog(t, T.drone - 0.1, T.drone + 0.6, "none") * (1 - flip) * (1 - leave)} size={40} accent={C.red} anchor="end" />
+          <Tag x={1290} y={620} text="GERAN-2" p={prog(t, T.geran, T.geran + 0.5, "none") * (1 - leave)} size={44} accent={C.red} anchor="start" />
 
           {/* price range */}
           {rangeP > 0 && (

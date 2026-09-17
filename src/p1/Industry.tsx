@@ -1,7 +1,7 @@
 import React from "react";
 import { C } from "../design";
 import { ShahedTop } from "../art/drones";
-import { ClockIcon, Engine, Factory, HelmetIcon, NoSign, PCB, ShieldIcon, Ultralight, Wrench, Big } from "../art/p1art";
+import { ClockIcon, Engine, Factory, HelmetIcon, Interceptor, NoSign, PCB, ScanLine, ShieldIcon, Ultralight, Wrench, Big } from "../art/p1art";
 import { Explosion, Pulse, Tag } from "../art/ui";
 import { Stage } from "../Stage";
 import { clamp01, ease, prog, rnd, useTime, win } from "../lib/kf";
@@ -60,7 +60,7 @@ export const Industry: React.FC = () => {
   const droneIn = ease("back.out(1.3)")(clamp01((t - T.it + 0.1) / 0.7));
   const DX = 960;
   const DY = 560;
-  const DS = 1.2;
+  const DS = 1.55;
 
   /* ---------------- nine of ten ---------------- */
   const iA = win(t, T.if - 0.2, T.inAn + 0.5, 0.4, 0.5);
@@ -150,6 +150,7 @@ export const Industry: React.FC = () => {
           <g transform={`translate(${DX} ${DY + (1 - droneIn) * 200}) rotate(${Math.sin(t * 0.9) * 4}) scale(${DS * droneIn})`}>
             <ShahedTop />
           </g>
+          <ScanLine x={DX} w={620} y0={DY - 260} y1={DY + 260} period={3.4} />
           {(() => {
             const pulse = prog(t, T.simple - 0.1, T.airframe + 0.6, "none");
             return pulse > 0 ? (
@@ -167,14 +168,14 @@ export const Industry: React.FC = () => {
               <g>
                 <path d={`M540,420 L${540 + (DX - 30 - 540) * line},${420 + (DY + 150 - 420) * line}`} stroke={C.amber} strokeWidth={5} strokeDasharray="12 8" />
                 <circle cx={DX} cy={DY + 165} r={26} fill="none" stroke={C.amber} strokeWidth={5} opacity={line} />
-                <g transform={`translate(400 400) scale(${0.72 * p})`}>
+                <g transform={`translate(400 400) scale(${0.94 * p})`}>
                   <Engine />
                 </g>
                 <Tag x={400} y={220} text="ENGINE" p={prog(t, T.engine, T.engine + 0.5, "none")} size={34} accent={C.amber} />
                 {t > T.ultralight - 0.2 && (
                   <g opacity={prog(t, T.ultralight - 0.2, T.ultralight + 0.3)}>
                     <Big x={400} y={640} text="≈" size={90} color={C.amber} />
-                    <Ultralight x={400} y={800} s={0.9 * ease("back.out(2)")(prog(t, T.ultralight - 0.2, T.ultralight + 0.3))} />
+                    <Ultralight x={400} y={830} s={1.15 * ease("back.out(2)")(prog(t, T.ultralight - 0.2, T.ultralight + 0.3))} />
                   </g>
                 )}
               </g>
@@ -189,7 +190,7 @@ export const Industry: React.FC = () => {
               <g>
                 <path d={`M1390,420 L${1390 + (DX + 20 - 1390) * line},${420 + (DY - 130 - 420) * line}`} stroke={C.cyan} strokeWidth={5} strokeDasharray="12 8" />
                 <circle cx={DX} cy={DY - 140} r={26} fill="none" stroke={C.cyan} strokeWidth={5} opacity={line} />
-                <g transform={`translate(1520 420) scale(${0.72 * p}) rotate(${Math.sin(t) * 3})`}>
+                <g transform={`translate(1520 420) scale(${0.94 * p}) rotate(${Math.sin(t) * 3})`}>
                   <PCB />
                 </g>
                 <Tag x={1520} y={220} text="COMMERCIAL ELECTRONICS" p={prog(t, T.offShelf, T.electronics + 0.4, "none")} size={30} accent={C.cyan} />
@@ -209,7 +210,20 @@ export const Industry: React.FC = () => {
       {iA > 0 && (
         <g opacity={iA}>
           <path d="M1120,230 L1120,880" stroke={C.cyan} strokeWidth={6} strokeDasharray="22 14" strokeDashoffset={t * 30} />
-          <g transform={`translate(${targetX + 60} 600) scale(0.78)`}>
+          {/* interceptors coming off the line to meet them */}
+          {Array.from({ length: 9 }, (_, k) => {
+            const tk = killAt(k < survivor ? k : k + 1);
+            const p = prog(t, tk - 0.55, tk, "power2.in");
+            if (p <= 0 || p >= 1) return null;
+            const ty = 470 + ((k * 37) % 5) * 90;
+            const x = 1700 - 1100 * p;
+            return (
+              <g key={`i${k}`} transform={`translate(${x} ${ty}) rotate(180) scale(0.3)`}>
+                <Interceptor kind="pac3" flame={1} />
+              </g>
+            );
+          })}
+          <g transform={`translate(${targetX + 60} 600) scale(0.98)`}>
             <Factory stop={0} />
           </g>
           {Array.from({ length: 10 }, (_, k) => {
@@ -232,7 +246,7 @@ export const Industry: React.FC = () => {
             if (isSurvivor && t > reach + 0.05) return null;
             return (
               <g key={k}>
-                {(isSurvivor || boom <= 0.15) && <ShahedTop x={x} y={y + Math.sin(t * 3 + k) * 4} r={90 + (isSurvivor ? (Math.atan2(560 - y0, targetX - x0) * 180) / Math.PI : 0)} s={0.26} />}
+                {(isSurvivor || boom <= 0.15) && <ShahedTop x={x} y={y + Math.sin(t * 3 + k) * 4} r={90 + (isSurvivor ? (Math.atan2(560 - y0, targetX - x0) * 180) / Math.PI : 0)} s={0.34} />}
                 {!isSurvivor && boom > 0 && <Explosion x={x} y={y} p={boom} size={46} seed={k + 50} />}
                 {isSurvivor && t > T.only - 0.2 && <circle cx={x} cy={y} r={70 + 6 * Math.sin(t * 8)} fill="none" stroke={C.amber} strokeWidth={6} />}
               </g>

@@ -2,7 +2,7 @@ import React from "react";
 import { geoOrthographic, geoPath } from "d3-geo";
 import { C } from "../design";
 import { ShahedTop } from "../art/drones";
-import { Big } from "../art/p1art";
+import { Big, PriceTicker } from "../art/p1art";
 import { DocPage, Pulse, Reticle, StrikeLine, Tag } from "../art/ui";
 import { Stage } from "../Stage";
 import { clamp01, ease, prog, useTime, win } from "../lib/kf";
@@ -129,6 +129,10 @@ export const Calc: React.FC = () => {
 
   return (
     <Stage>
+      <g opacity={boardA * 0.7}>
+        <PriceTicker x={92} seed={11} opacity={0.22} speed={18} />
+        <PriceTicker x={1828} seed={17} opacity={0.22} speed={25} />
+      </g>
       {mapA > 0 && <MiniMap t={t} a={mapA} shrink={shrink} />}
 
       {boardA > 0 && (
@@ -142,8 +146,8 @@ export const Calc: React.FC = () => {
           {/* row A: price of one drone */}
           {rowA > 0 && (
             <g transform={`translate(0 ${(1 - rowA) * 40})`} opacity={clamp01(rowA * 2)}>
-              <ShahedTop x={700} y={370 + Math.sin(t * 2) * 5} r={90} s={0.34} />
-              <Big x={1180} y={405} text="$35,000" size={110} color={C.amber} opacity={prog(t, T.d35 - 0.15, T.d35 + 0.2)} />
+              <ShahedTop x={660} y={370 + Math.sin(t * 2) * 5} r={90} s={0.46} />
+              <Big x={1180} y={405} text="$35,000" size={130} color={C.amber} opacity={prog(t, T.d35 - 0.15, T.d35 + 0.2)} />
               <g transform="translate(870 372)" opacity={prog(t, T.d35 - 0.15, T.d35 + 0.2)}>
                 <path d="M-22,-22 L22,22 M22,-22 L-22,22" stroke={C.ink} strokeWidth={16} strokeLinecap="round" />
                 <path d="M-22,-22 L22,22 M22,-22 L-22,22" stroke={C.cream} strokeWidth={9} strokeLinecap="round" />
@@ -156,12 +160,12 @@ export const Calc: React.FC = () => {
           {Array.from({ length: 10 }, (_, i) => {
             const p = iconsIn(i);
             if (p <= 0) return null;
-            const x = 520 + i * 105;
+            const x = 470 + i * 118;
             const y = 600 + Math.sin(t * 2.5 + i) * 4;
             const k = i < 9 ? killed(i) : 0;
             return (
               <g key={i}>
-                <ShahedTop x={x} y={y} r={90} s={0.22 * p} opacity={1 - 0.55 * clamp01(k)} />
+                <ShahedTop x={x} y={y} r={90} s={0.3 * p} opacity={1 - 0.55 * clamp01(k)} />
                 {k > 0 && (
                   <g transform={`translate(${x} ${y}) scale(${k})`}>
                     <path d="M-30,-30 L30,30 M30,-30 L-30,30" stroke={C.ink} strokeWidth={16} strokeLinecap="round" />

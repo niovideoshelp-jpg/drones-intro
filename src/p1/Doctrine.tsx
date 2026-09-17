@@ -52,7 +52,7 @@ const THREATS = [
 
 /* engagement board geometry */
 const SITE = { x: 960, y: 610 };
-const R = 330;
+const R = 400;
 const P0 = { x: 150, y: 230 };
 const DIST = Math.hypot(SITE.x - P0.x, SITE.y - P0.y);
 const along = (f: number) => ({ x: P0.x + (SITE.x - P0.x) * f, y: P0.y + (SITE.y - P0.y) * f });
@@ -95,7 +95,7 @@ export const Doctrine: React.FC = () => {
             return p > 0 ? (
               <g key={l.label}>
                 <path d={`M600,${l.y - 40} L${JUNCTION.x},${JUNCTION.y}`} stroke={C.cyan} strokeWidth={6} opacity={prog(t, T.ballistic - 0.4, T.ballistic)} />
-                <g transform={`translate(360 ${l.y + 60}) scale(${0.62 * p})`}>
+                <g transform={`translate(360 ${l.y + 60}) scale(${0.82 * p})`}>
                   <LauncherSide elev={l.elev} />
                 </g>
                 <Tag x={360} y={l.y + 120} text={l.label} p={prog(t, l.t0, l.t0 + 0.5, "none")} size={32} accent={C.red} />
@@ -115,7 +115,7 @@ export const Doctrine: React.FC = () => {
               {[360, 740].map((y, i) => (
                 <path key={y} d={`M600,${y - 40} Q${1000},${550 + (i ? 60 : -60)} ${600 + (1320 - 600) * toDrone},${y - 40 + (550 - y + 40) * toDrone}`} fill="none" stroke={C.red} strokeWidth={6} strokeDasharray="16 10" strokeDashoffset={-t * 50} />
               ))}
-              <ShahedTop x={1400} y={550 + Math.sin(t * 2) * 8} r={-90} s={0.4 * ease("back.out(2)")(prog(t, T.every - 0.3, T.every + 0.2))} />
+              <ShahedTop x={1400} y={550 + Math.sin(t * 2) * 8} r={-90} s={0.52 * ease("back.out(2)")(prog(t, T.every - 0.3, T.every + 0.2))} />
               <NoSign x={1000} y={550} p={no} r={130} />
             </g>
           )}
@@ -131,13 +131,13 @@ export const Doctrine: React.FC = () => {
               <g key={th.key}>
                 <path d={`M${JUNCTION.x},${JUNCTION.y} L${JUNCTION.x + (tx - JUNCTION.x) * link},${JUNCTION.y + (th.y - JUNCTION.y) * link}`} stroke={C.cyan} strokeWidth={6} />
                 <g transform={`translate(1450 ${th.y + Math.sin(t * 1.8 + i) * 5}) scale(${p})`}>
-                  <circle r={78} fill={C.ink} fillOpacity={0.9} stroke={C.red} strokeWidth={5} />
-                  {th.key === "ballistic" && <BallisticMissile r={40} s={0.42} />}
-                  {th.key === "aircraft" && <FighterJet s={0.28} afterburner={0.8} missile={false} />}
-                  {th.key === "cruise" && <CruiseMissile s={0.42} />}
-                  {th.key === "other" && <Query s={1.3} color={C.red} />}
+                  <circle r={98} fill={C.ink} fillOpacity={0.9} stroke={C.red} strokeWidth={6} />
+                  {th.key === "ballistic" && <BallisticMissile r={40} s={0.54} />}
+                  {th.key === "aircraft" && <FighterJet s={0.36} afterburner={0.8} missile={false} />}
+                  {th.key === "cruise" && <CruiseMissile s={0.54} />}
+                  {th.key === "other" && <Query s={1.7} color={C.red} />}
                 </g>
-                <Tag x={1550} y={th.y} text={th.label} p={prog(t, th.t, th.t + 0.6, "none")} size={26} accent={C.red} anchor="start" />
+                <Tag x={1550} y={th.y} text={th.label} p={prog(t, th.t, th.t + 0.6, "none")} size={30} accent={C.red} anchor="start" />
               </g>
             );
           })}
@@ -163,7 +163,29 @@ export const Doctrine: React.FC = () => {
           {[0.66, 0.33].map((k) => (
             <circle key={k} cx={SITE.x} cy={SITE.y} r={R * k} fill="none" stroke={C.cyan} strokeOpacity={0.3} strokeWidth={3} />
           ))}
-          <SAMTop x={SITE.x} y={SITE.y} s={0.62} r={-25} />
+          {/* the site keeps sweeping while it waits */}
+          {(() => {
+            const a = ((t * 70) % 360) - 90;
+            const rad = (d: number) => (d * Math.PI) / 180;
+            return (
+              <g>
+                {Array.from({ length: 14 }, (_, i) => {
+                  const a1 = a - i * 3.2;
+                  const a0 = a1 - 3.4;
+                  return (
+                    <path
+                      key={i}
+                      d={`M${SITE.x},${SITE.y} L${SITE.x + Math.cos(rad(a0)) * R},${SITE.y + Math.sin(rad(a0)) * R} A${R},${R} 0 0 1 ${SITE.x + Math.cos(rad(a1)) * R},${SITE.y + Math.sin(rad(a1)) * R}Z`}
+                      fill={C.cyan}
+                      opacity={0.14 * (1 - i / 14) ** 1.5}
+                    />
+                  );
+                })}
+                <path d={`M${SITE.x},${SITE.y} L${SITE.x + Math.cos(rad(a)) * R},${SITE.y + Math.sin(rad(a)) * R}`} stroke={C.cyan} strokeWidth={4} opacity={0.75} />
+              </g>
+            );
+          })()}
+          <SAMTop x={SITE.x} y={SITE.y} s={0.9} r={-25} />
           <PriceTag x={SITE.x + 150} y={SITE.y + 110} text="$1M" size={58} color={C.amber} s={prog(t, T.million - 0.1, T.million + 0.3, "back.out(2)")} />
 
           {/* the cheaper weapon, somewhere else */}
@@ -189,7 +211,7 @@ export const Doctrine: React.FC = () => {
           })()}
 
           {/* incoming drone */}
-          {intercept < 0.25 && <ShahedTop x={dronePos.x} y={dronePos.y} r={(Math.atan2(SITE.y - P0.y, SITE.x - P0.x) * 180) / Math.PI + 90} s={0.34} />}
+          {intercept < 0.25 && <ShahedTop x={dronePos.x} y={dronePos.y} r={(Math.atan2(SITE.y - P0.y, SITE.x - P0.x) * 180) / Math.PI + 90} s={0.44} />}
           <path d={`M${P0.x},${P0.y} L${dronePos.x},${dronePos.y}`} stroke={C.red} strokeWidth={4} strokeDasharray="10 8" opacity={0.7} />
 
           {/* engagement window: the arc of the circle the drone crosses */}

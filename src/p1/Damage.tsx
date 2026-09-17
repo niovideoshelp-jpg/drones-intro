@@ -87,7 +87,7 @@ export const Damage: React.FC = () => {
           const effect = prog(t, c.hit, c.hit + 0.6, "power2.out");
           return (
             <g key={c.key}>
-              <g transform={`translate(${c.x} ${y + (1 - pop) * 80 + Math.sin(t * 1.2 + i) * 4}) scale(${0.66 * pop})`}>
+              <g transform={`translate(${c.x} ${y + (1 - pop) * 80 + Math.sin(t * 1.2 + i) * 4}) scale(${0.84 * pop})`}>
                 {c.key === "tr" && <Transformer arc={prog(t, c.hit, c.hit + 1.2, "none")} />}
                 {c.key === "fuel" && <FuelDepot fire={effect} />}
                 {c.key === "rail" && <RailLine stop={effect} />}
@@ -95,7 +95,7 @@ export const Damage: React.FC = () => {
               </g>
               {dive > 0 && dive < 1 && <ShahedTop x={c.x - 260 + 260 * dive} y={420 + (y - 60 - 420) * dive} r={135} s={0.2} />}
               {boom > 0 && boom < 1 && <Explosion x={c.x} y={y - 40} p={boom} size={90} seed={70 + i} />}
-              <Tag x={c.x} y={y + 190} text={c.label} p={prog(t, c.t0, c.t0 + 0.7, "none")} size={28} accent={C.red} />
+              <Tag x={c.x} y={y + 190} text={c.label} p={prog(t, c.t0, c.t0 + 0.7, "none")} size={30} accent={C.red} />
             </g>
           );
         })}
