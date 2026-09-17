@@ -62,7 +62,7 @@ export const Layer5: React.FC = () => {
   const dragon = prog(t, T.dragonfire - 0.2, T.shot2 + 0.3, "back.out(1.8)");
 
   const progA = win(t, T.israel - 0.4, T.microwaves - 0.2, 0.4, 0.4);
-  const mwA = win(t, T.microwaves - 0.3, T.butIts - 0.2, 0.4, 0.5);
+  const mwA = win(t, T.microwaves - 0.3, T.miracle - 0.4, 0.4, 0.5);
   const mwFire = win(t, T.area - 0.6, T.swarms + 0.8, 0.3, 0.5);
   const limA = win(t, T.miracle - 0.5, T.theyll + 0.4, 0.4, 0.5);
 

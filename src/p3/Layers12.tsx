@@ -89,7 +89,7 @@ export const Layers12: React.FC = () => {
   const many = prog(t, T.singleSys - 0.2, T.once + 0.2, "power2.out");
 
   /* ---------------- the limits of jamming ---------------- */
-  const limA = win(t, T.autonomously - 0.6, T.when + 0.4, 0.4, 0.5);
+  const limA = win(t, T.but - 0.1, T.when + 0.4, 0.4, 0.5);
 
   return (
     <Stage>

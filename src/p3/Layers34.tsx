@@ -74,7 +74,7 @@ export const Layers34: React.FC = () => {
   if (t < LAYERS34_RANGE[0] || t > LAYERS34_RANGE[1]) return null;
 
   /* ---- guns and rockets ---- */
-  const gunA = win(t, T.when - 0.2, T.but - 0.2, 0.4, 0.5);
+  const gunA = win(t, T.when - 0.2, T.physical - 0.4, 0.4, 0.5);
   const fire = win(t, T.gepard - 0.3, T.less + 0.6, 0.3, 0.5);
   const burst = prog(t, T.airburst - 0.2, T.ammunition + 0.6, "none");
   const rocket = prog(t, T.guided - 0.2, T.apkws + 0.8, "power1.in");
@@ -87,7 +87,7 @@ export const Layers34: React.FC = () => {
   const rain = win(t, T.rounds - 0.3, T.another - 0.4, 0.3, 0.5);
 
   /* ---- interceptor drones ---- */
-  const dA = win(t, T.another - 0.2, T.butThey - 0.2, 0.4, 0.5);
+  const dA = win(t, T.another - 0.2, T.depend - 0.4, 0.4, 0.5);
   const approach = prog(t, T.interceptorD, T.send - 0.2, "none");
   const chase = prog(t, T.send - 0.2, T.destroy + 0.2, "power1.inOut");
   const kill = prog(t, T.destroy + 0.2, T.destroy + 1.2, "none");
@@ -95,7 +95,7 @@ export const Layers34: React.FC = () => {
   const under = prog(t, T.cases - 0.2, T.threatCheap + 0.3, "power2.inOut");
 
   /* ---- their limits ---- */
-  const dLimA = win(t, T.depend - 0.5, T.and + 0.5, 0.4, 0.5);
+  const dLimA = win(t, T.butThey - 0.3, T.and + 0.5, 0.4, 0.5);
 
   return (
     <Stage>
@@ -218,7 +218,7 @@ export const Layers34: React.FC = () => {
 
       {dLimA > 0 && (
         <g opacity={dLimA}>
-          <Tag x={960} y={160} text="THEY DO NOT SOLVE EVERYTHING" p={prog(t, T.depend - 0.2, T.depend + 0.6, "none")} size={38} accent={C.red} />
+          <Tag x={960} y={160} text="THEY DO NOT SOLVE EVERYTHING" p={prog(t, T.butThey, T.depend + 0.4, "none")} size={38} accent={C.red} />
           {[
             { t0: T.sensors, label: "SENSORS", kind: "radar" as const, x: 430 },
             { t0: T.operators, label: "OPERATORS", kind: "people" as const, x: 960 },
