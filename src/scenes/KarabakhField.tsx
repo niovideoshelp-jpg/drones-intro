@@ -61,7 +61,7 @@ export const KarabakhField: React.FC<{ P: Projection }> = ({ P }) => {
   const [cx, cy] = c;
 
   // phase A: drones against targets
-  const aA = win(t, T.recon - 0.3, T.footage + 0.2, 0.4, 0.5);
+  const aA = win(t, T.recon - 0.3, T.footage - 0.05, 0.4, 0.35);
   // recon drone holds a tight overwatch orbit above the centre, clear of targets and labels
   const orbit = (t - T.recon) * 0.9;
   const reconIn = ease("power3.out")(clamp01((t - T.recon + 0.2) / 1.4));
@@ -185,12 +185,24 @@ export const KarabakhField: React.FC<{ P: Projection }> = ({ P }) => {
               </g>
             );
           })}
-          {smallP > 0 && (
-            <g opacity={win(t, T.small - 0.4, T.works + 0.4, 0.3, 0.5)}>
-              <LoiterTop x={cx} y={cy} s={0.75 * smallP} r={-10 + Math.sin(t * 2) * 6} />
-              <circle cx={cx} cy={cy} r={120 * smallP} fill="none" stroke={C.amber} strokeWidth={4} strokeDasharray="10 8" />
-            </g>
-          )}
+          {(() => {
+            // one small drone patrols the terrain from "helped", flagged when "small" is said
+            const a = win(t, T.helped - 0.1, T.works + 0.4, 0.4, 0.5);
+            if (a <= 0) return null;
+            const ang = (t - T.helped) * 1.05 - 1.2;
+            const x = cx + Math.cos(ang) * 330;
+            const y = cy + Math.sin(ang) * 170;
+            const heading = (Math.atan2(Math.cos(ang) * 170, -Math.sin(ang) * 330) * 180) / Math.PI + 90;
+            const flag = 1 + 0.35 * smallP * (1 - prog(t, T.small + 0.5, T.completely, "power2.inOut"));
+            return (
+              <g opacity={a}>
+                <ellipse cx={cx} cy={cy} rx={330} ry={170} fill="none" stroke={C.amber} strokeOpacity={0.35} strokeWidth={3} strokeDasharray="12 12" strokeDashoffset={-t * 40} />
+                <circle cx={x} cy={y} r={110 * flag} fill={C.cyan} opacity={0.1} />
+                <circle cx={x} cy={y} r={110 * flag} fill="none" stroke={C.amber} strokeWidth={4} strokeDasharray="10 8" />
+                <LoiterTop x={x} y={y} r={heading} s={0.7 * flag} />
+              </g>
+            );
+          })()}
         </g>
       )}
     </g>

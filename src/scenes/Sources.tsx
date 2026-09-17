@@ -49,7 +49,7 @@ export const Sources: React.FC = () => {
       <g opacity={1 - end}>
         {/* source pages fan in, then drop into the description panel */}
         {PAGES.map((pg, i) => {
-          const pop = ease("back.out(1.6)")(clamp01((t - T.worth - 0.25 - i * 0.22) / 0.6));
+          const pop = ease("back.out(1.6)")(clamp01((t - T.worth - 0.55 - i * 0.22) / 0.6));
           if (pop <= 0 || toPanel >= 1) return null;
           const lines = prog(t, T.presented - 0.1 + i * 0.15, T.based + 0.4 + i * 0.15, "power1.out");
           const chart = prog(t, T.based + i * 0.15, T.sources + 0.5 + i * 0.15, "power2.out");

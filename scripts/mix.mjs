@@ -62,6 +62,7 @@ q("whoosh_a", went + 0.25, -6);
 for (let i = 0; i < 8; i++) q(i % 2 ? "pop_b" : "pop_a", went + i * 0.09 + 0.35, -15);
 q("ping", at("world,"), -8);
 q("whoosh_b", at("helped") + 0.05, -9);
+q("prop", at("helped") + 0.9, -14);
 q("fpv", at("small"), -11);
 q("scan", at("completely") + 0.2, -6);
 q("typing", at("completely") + 0.9, -13);
@@ -160,6 +161,7 @@ q("counter", at("cost.") + 0.05, -8);
 const imp = at("importantly,");
 q("whoosh_a", imp + 0.3, -6);
 q("prop", imp + 1.0, -13);
+for (let i = 0; i < 5; i++) q("pop_b", imp + 0.6 + i * 0.12, -17);
 q("scan", at("know", 103) + 0.6, -10);
 q("pop_a", at("trying") + 0.05, -9);
 q("whoosh_b", at("hit.") + 0.1, -8);
@@ -169,10 +171,10 @@ for (const [w, after] of [["empty", 0], ["power", 0], ["ammunition", 0], ["airba
   q("ping", t + 0.05, -14);
 }
 q("shield", at("protecting"), -4);
-q("whoosh_a", at("He", 115.8) + 0.2, -8);
+q("whoosh_a", at("He", 115.8) - 0.2, -8);
 
 /* ---------- decision ---------- */
-q("pop_b", at("He", 115.8) + 0.25, -7);
+q("pop_b", at("He", 115.8) + 0.45, -7);
 const minutes = at("minutes");
 q("tick", minutes + 0.33, -8);
 q("tick", minutes + 4.33, -12);
@@ -210,8 +212,8 @@ q("pop_b", at("cheap") + 0.05, -8);
 q("impact", at("not", 143.5), -4);
 q("whoosh_b", at("not", 143.5) + 0.45, -8);
 q("whoosh_a", at("math") + 0.9, -8);
-q("whoosh_b", at("commander", 147) + 0.25, -8);
-q("pop_a", at("commander", 147) + 0.35, -9);
+q("whoosh_b", at("unit") - 0.05, -8);
+q("pop_a", at("unit") + 0.15, -9);
 q("pop_b", at("price", 149), -10);
 q("typing", at("drone", 149.5) - 0.1, -12);
 q("pop_a", at("price", 150.4), -10);
@@ -230,7 +232,7 @@ q("impact", at("taking") + 0.02, -2);
 
 /* ---------- sources ---------- */
 q("whoosh_a", at("worth") + 0.3, -6);
-q("paper", at("worth") + 0.6, -6);
+q("paper", at("worth") + 0.85, -6);
 q("whoosh_b", at("listed") + 0.1, -8);
 [0, 0.2, 0.4].forEach((d) => q("click", at("description.") + d + 0.15, -10));
 q("clank", at("links") + 0.2, -8);

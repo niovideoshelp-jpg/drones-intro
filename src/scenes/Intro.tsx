@@ -146,6 +146,16 @@ const IntroInner: React.FC = () => {
           </g>
         )}
 
+        {/* air streaks sell the forward flight while the drone holds centre frame */}
+        <g opacity={prog(t, 0.6, 1.4) * (1 - prog(t, T.one - 0.7, T.one - 0.3))}>
+          {Array.from({ length: 16 }, (_, i) => {
+            const len = 120 + rnd(i, 7) * 200;
+            const x = ((((rnd(i, 3) * 2400 - t * (700 + rnd(i, 4) * 500)) % 2400) + 2400) % 2400) - 240;
+            const y = 170 + rnd(i, 5) * 480;
+            return <path key={i} d={`M${x},${y} L${x + len},${y}`} stroke={C.cream} strokeOpacity={0.18 + rnd(i, 6) * 0.2} strokeWidth={3 + rnd(i, 8) * 3} strokeLinecap="round" />;
+          })}
+        </g>
+
         {/* formation wingmen */}
         <g className="wing">
           <ReconDroneSide x={420} y={200 + sway * 0.6} s={0.5} armed gimbal={40} lights={false} />

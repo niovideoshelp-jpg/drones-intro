@@ -41,7 +41,7 @@ export const Targets: React.FC = () => {
   if (t < TARGETS_RANGE[0] || t > TARGETS_RANGE[1]) return null;
 
   const droneIn = ease("expo.out")(clamp01((t - T.importantly - 0.3) / 0.9));
-  const leave = prog(t, T.he - 0.2, T.he + 0.6, "power3.in");
+  const leave = prog(t, T.he - 0.45, T.he + 0.15, "power3.in");
   const path = prog(t, T.know - 0.1, T.trying + 0.2, "power2.inOut");
   const branch = prog(t, T.hit - 0.1, T.hit + 0.6, "power2.out");
   const dome = prog(t, T.protecting - 0.1, T.region + 0.3, "power2.out");
@@ -49,7 +49,30 @@ export const Targets: React.FC = () => {
 
   return (
     <Stage>
-      <g opacity={1 - leave} transform={`translate(960 540) scale(${1 - leave * 0.25}) translate(-960 -540)`}>
+      <g opacity={1 - leave} transform={`translate(960 ${540 + leave * 140}) scale(${1 - leave * 0.25}) translate(-960 -540)`}>
+        {/* unknown-target placeholders, filled in as each target is named */}
+        {SLOTS.map((sl, i) => {
+          const ghost = prog(t, T.importantly + 0.35 + i * 0.12, T.importantly + 0.85 + i * 0.12, "back.out(2)");
+          const filled = prog(t, sl.t - 0.15, sl.t + 0.2);
+          const a = ghost * (1 - filled);
+          if (a <= 0) return null;
+          const k = S * (0.85 + 0.15 * ghost);
+          return (
+            <g key={`g${sl.key}`} opacity={a}>
+              <path
+                d={`M${sl.x},${sl.y - 110 * k} L${sl.x + 190 * k},${sl.y} L${sl.x},${sl.y + 110 * k} L${sl.x - 190 * k},${sl.y}Z`}
+                fill={C.ink}
+                fillOpacity={0.55}
+                stroke={C.cream}
+                strokeOpacity={0.6}
+                strokeWidth={4}
+                strokeDasharray="14 10"
+                strokeDashoffset={-t * 30}
+              />
+              <Query x={sl.x} y={sl.y - 10 + Math.sin(t * 2.2 + i) * 6} s={0.9} color={C.cream} />
+            </g>
+          );
+        })}
         {/* protective dome from the radar */}
         {dome > 0 && (
           <g>
@@ -71,7 +94,7 @@ export const Targets: React.FC = () => {
         {/* projected path: drone -> hub -> five possible targets */}
         {path > 0 && (
           <g>
-            <path d={`M${DRONE.x},${DRONE.y + 60} L${HUB.x},${DRONE.y + 60 + (HUB.y - DRONE.y - 60) * path}`} stroke={C.red} strokeWidth={6} strokeDasharray="16 10" strokeDashoffset={-t * 50} />
+            <path d={`M${DRONE.x},${DRONE.y + 130} L${HUB.x},${DRONE.y + 130 + (HUB.y - DRONE.y - 130) * path}`} stroke={C.red} strokeWidth={6} strokeDasharray="16 10" strokeDashoffset={-t * 50} />
           </g>
         )}
         {branch > 0 &&
@@ -115,10 +138,10 @@ export const Targets: React.FC = () => {
         })}
 
         {/* the incoming drone */}
-        <g transform={`translate(${DRONE.x} ${DRONE.y - (1 - droneIn) * 300 + hover}) rotate(180) scale(${0.5 * droneIn + 0.001})`}>
+        <g transform={`translate(${DRONE.x} ${DRONE.y - (1 - droneIn) * 300 + hover}) rotate(180) scale(${0.72 * droneIn + 0.001})`}>
           <ShahedTop />
         </g>
-        <path d={`M${DRONE.x},0 L${DRONE.x},${DRONE.y - 90}`} stroke={C.red} strokeWidth={4} strokeDasharray="8 10" opacity={0.6 * droneIn} strokeDashoffset={t * 40} />
+        <path d={`M${DRONE.x},0 L${DRONE.x},${DRONE.y - 120}`} stroke={C.red} strokeWidth={4} strokeDasharray="8 10" opacity={0.6 * droneIn} strokeDashoffset={t * 40} />
       </g>
     </Stage>
   );

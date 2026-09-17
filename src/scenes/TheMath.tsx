@@ -116,18 +116,21 @@ export const TheMath: React.FC = () => {
       [T.alone + 0.2, 24, "elastic.out(1, 0.5)"],
       [T.dozens, 24],
       [T.destroy, 4, "power1.inOut"],
-    ]) + (t > T.absurd && t < T.absurd + 0.6 ? Math.sin((t - T.absurd) * 50) * 3 * (1 - (t - T.absurd) / 0.6) : 0);
+    ]) +
+    Math.sin(t * 1.8) * 1.4 +
+    (t > T.absurd && t < T.absurd + 0.6 ? Math.sin((t - T.absurd) * 50) * 3 * (1 - (t - T.absurd) / 0.6) : 0);
   const missileDrop = ease("bounce.out")(clamp01((t - T.numbers + 0.2) / 0.6));
   const droneDrop = ease("bounce.out")(clamp01((t - T.numbers) / 0.6));
   const strike1 = prog(t, T.not - 0.05, T.not + 0.35, "power2.out");
   const strike2 = prog(t, T.not + 0.3, T.math + 0.1, "power2.out");
 
   /* ---------------- cards ---------------- */
-  const cardsIn = ease("back.out(1.4)")(clamp01((t - T.commander + 0.1) / 0.7));
+  const cardsIn = ease("back.out(1.4)")(clamp01((t - T.unit + 0.25) / 0.7));
+  const bob = (k: number) => Math.sin(t * 1.3 + k) * 8;
   const flipL = prog(t, T.hes, T.cost + 0.1, "power2.inOut");
   const flipR = prog(t, T.intercept + 0.25, T.damage + 0.2, "power2.inOut");
   const apart = prog(t, T.right - 0.1, T.space, "power3.inOut");
-  const cardsOut = prog(t, T.worth - 0.2, T.worth + 0.8, "power3.in");
+  const cardsOut = prog(t, T.worth - 0.3, T.worth + 0.5, "power3.in");
   const lx = 560 - 180 * apart;
   const rx = 1360 + 180 * apart;
   const cs = cardsIn * (1 - 0.18 * apart) * (1 - cardsOut);
@@ -180,7 +183,7 @@ export const TheMath: React.FC = () => {
   );
 
   /* ---------------- question mark swarm ---------------- */
-  const swarmA = 1 - prog(t, T.worth - 0.1, T.worth + 0.9, "power2.in");
+  const swarmA = 1 - prog(t, T.worth - 0.2, T.worth + 0.6, "power2.in");
   const measure = win(t, T.space - 0.1, T.that + 0.4, 0.5, 0.5);
 
   return (
@@ -225,8 +228,8 @@ export const TheMath: React.FC = () => {
       {/* comparison cards */}
       {cardsIn > 0 && cardsOut < 1 && (
         <g>
-          <Card x={lx} y={540} s={cs} flip={flipL} glow={pulseTwo} accent={C.red} backAccent={C.amber} front={cheapDrone} back={interceptBack} />
-          <Card x={rx} y={540} s={cs * (1 + 0.14 * grow)} flip={flipR} glow={pulseTwo} accent={C.amber} backAccent={C.red} front={missileFront} back={damageBack} />
+          <Card x={lx} y={540 + bob(0)} s={cs} flip={flipL} glow={pulseTwo} accent={C.red} backAccent={C.amber} front={cheapDrone} back={interceptBack} />
+          <Card x={rx} y={540 + bob(2.2)} s={cs * (1 + 0.14 * grow)} flip={flipR} glow={pulseTwo} accent={C.amber} backAccent={C.red} front={missileFront} back={damageBack} />
           {apart < 0.5 && (
             <g transform={`translate(960 540) scale(${cardsIn * (1 - apart * 2)})`}>
               <circle r={62} fill={C.cream} stroke={C.ink} strokeWidth={6} />
@@ -261,7 +264,7 @@ export const TheMath: React.FC = () => {
           const lock = prog(t, T.taking - 0.05, T.shape + 0.2, "back.out(3)");
           const tx = 960 + qx * (1 + 0.08 * lock);
           const ty = 520 + qy * (1 + 0.08 * lock);
-          const scatter = prog(t, T.worth - 0.2, T.worth + 0.9, "power2.in");
+          const scatter = prog(t, T.worth - 0.3, T.worth + 0.6, "power2.in");
           const x = sx + (tx - sx) * p + Math.cos(a) * 1400 * scatter;
           const y = sy + (ty - sy) * p + Math.sin(a) * 900 * scatter;
           const heading = p < 0.95 ? (Math.atan2(ty - sy, tx - sx) * 180) / Math.PI + 90 : 180 + Math.sin(t * 2 + i) * 10;

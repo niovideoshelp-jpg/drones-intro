@@ -56,7 +56,7 @@ export const Decision: React.FC = () => {
   if (t < DECISION_RANGE[0] || t > DECISION_RANGE[1]) return null;
 
   /* ---------- stopwatch ---------- */
-  const swIn = ease("back.out(1.6)")(clamp01((t - T.he + 0.1) / 0.6));
+  const swIn = ease("back.out(1.6)")(clamp01((t - T.he - 0.1) / 0.6));
   const alarm = prog(t, T.only - 0.05, T.only + 0.2, "none");
   const dock = prog(t, T.he2 - 0.1, T.fire + 0.2, "power3.inOut");
   const remaining = t < T.only ? 180 - Math.max(0, t - T.minutes) * 24 : 8 - Math.max(0, t - T.only) * 0.85;
@@ -70,6 +70,7 @@ export const Decision: React.FC = () => {
   /* ---------- options ---------- */
   const colIn = (t0: number) => ease("back.out(1.5)")(clamp01((t - t0 + 0.2) / 0.6));
   const o1 = colIn(T.fire);
+  const shift1 = prog(t, T.wait - 0.55, T.wait + 0.15, "power3.inOut");
   const o2 = colIn(T.wait);
   const o3 = colIn(T.take);
 
@@ -114,10 +115,9 @@ export const Decision: React.FC = () => {
           </g>
         )}
 
-        {/* option 1 */}
+        {/* option 1: centred and larger until the second option arrives */}
         {o1 > 0 && (
-          <g>
-            <Tag x={420} y={270} text="FIRE" p={prog(t, T.fire, T.fire + 0.5, "none")} size={44} accent={C.red} />
+          <g transform={`translate(${(960 - 420) * (1 - shift1)} ${-30 * (1 - shift1)}) translate(420 600) scale(${1 + 0.22 * (1 - shift1)}) translate(-420 -600)`}>
             <LauncherSide x={400} y={820} s={0.85 * o1} elev={38} />
             {launch > 0 && intercept <= 0 && (
               <g>
@@ -130,6 +130,8 @@ export const Decision: React.FC = () => {
             <PriceTag x={205} y={915} text={priceText} s={prog(t, T.costs - 0.1, T.costs + 0.3, "back.out(2)")} size={54} color={C.amber} />
           </g>
         )}
+
+        {o1 > 0 && <Tag x={420 + 540 * (1 - shift1)} y={270} text="FIRE" p={prog(t, T.fire, T.fire + 0.5, "none")} size={44} accent={C.red} />}
 
         {/* option 2 */}
         {o2 > 0 && (
