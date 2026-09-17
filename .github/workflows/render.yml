@@ -74,12 +74,14 @@ jobs:
             npx remotion render src/index.ts DronesIntro out/raw.mov --frames="$START-$END" --codec=prores --prores-profile=4444 --pixel-format=yuva444p10le --image-format=png --muted --concurrency=$(nproc)
             SS=$(awk "BEGIN{printf \"%.4f\", $START/30}")
             DUR=$(awk "BEGIN{printf \"%.4f\", ($END-$START+1)/30}")
-            ffmpeg -y -i out/raw.mov -ss "$SS" -t "$DUR" -i public/audio/mix.wav -map 0:v -map 1:a -c:v copy -c:a pcm_s16le -shortest "out/DronesIntro_alpha_part$N.mov"
+            # main deliverable: VP9 with alpha (joined later); fallback: lighter ProRes 4444 part with its slice of the mix
+            ffmpeg -y -i out/raw.mov -c:v libvpx-vp9 -pix_fmt yuva420p -crf 28 -b:v 0 -row-mt 1 -deadline good -cpu-used 3 -auto-alt-ref 0 -g 60 -an -metadata:s:v:0 alpha_mode=1 "out/webm-part$N.webm"
+            ffmpeg -y -i out/raw.mov -ss "$SS" -t "$DUR" -i public/audio/mix.wav -map 0:v -map 1:a -c:v prores_ks -profile:v 4 -pix_fmt yuva444p10le -alpha_bits 8 -qscale:v 13 -vendor apl0 -c:a pcm_s16le -shortest "out/DronesIntro_alpha_ProRes4444_part$N.mov"
             rm out/raw.mov
           fi
           ls -la out
       - name: Upload part to the release
-        run: gh release upload "${{ needs.prepare.outputs.tag }}" out/*part*.m* --clobber
+        run: gh release upload "${{ needs.prepare.outputs.tag }}" out/*part* --clobber
 
   assemble:
     needs: [prepare, render]
@@ -95,7 +97,8 @@ jobs:
       - name: Download parts
         run: |
           mkdir -p parts dist
-          gh release download "${{ needs.prepare.outputs.tag }}" -D parts -p "*part*"
+          if [ "${{ inputs.mode }}" = "review" ]; then P="review-part*"; else P="webm-part*"; fi
+          gh release download "${{ needs.prepare.outputs.tag }}" -D parts -p "$P"
           ls -la parts
       - name: Review MP4
         if: inputs.mode == 'review'
@@ -108,13 +111,21 @@ jobs:
       - name: Final extras (verification, stems, quick-look)
         if: inputs.mode == 'final'
         run: |
-          for f in parts/*.mov; do echo "$f"; ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,profile,pix_fmt,width,height,nb_frames -of compact "$f"; done | tee dist/VERIFY.txt
+          for i in 1 2 3 4 5 6; do echo "file 'parts/webm-part$i.webm'"; done > list.txt
+          ffmpeg -y -f concat -safe 0 -i list.txt -c copy picture.webm
+          ffmpeg -y -i picture.webm -i public/audio/mix.wav -map 0:v -map 1:a -c:v copy -c:a libopus -b:a 192k -shortest dist/DronesIntro_alpha.webm
+          {
+            ffprobe -v error -show_entries format=duration,size:stream=codec_name,width,height,r_frame_rate:stream_tags=alpha_mode -of compact dist/DronesIntro_alpha.webm
+            # decode with libvpx so the alpha plane is read; report min/max alpha of a mid frame
+            ffmpeg -hide_banner -c:v libvpx-vp9 -ss 60 -i dist/DronesIntro_alpha.webm -frames:v 1 -vf "format=rgba,alphaextract,signalstats,metadata=print:key=lavfi.signalstats.YMIN,metadata=print:key=lavfi.signalstats.YMAX" -f null - 2>&1 | grep -E "YMIN|YMAX"
+          } | tee dist/VERIFY.txt
+          grep -q "YMIN=0" dist/VERIFY.txt || (echo "alpha plane missing" && exit 1)
           (cd public/audio && zip -9 ../../dist/DronesIntro_audio_stems.zip mix.wav voice.wav music.wav sfx.wav)
-          for i in 1 2 3 4 5 6; do echo "file 'parts/DronesIntro_alpha_part$i.mov'"; done > list.txt
-          ffmpeg -y -f concat -safe 0 -i list.txt -filter_complex "color=c=0x3b4447:s=1920x1080:r=30[bg];[bg][0:v]overlay=shortest=1,scale=1280:720,format=yuv420p[v]" -map "[v]" -map 0:a -c:v libx264 -crf 24 -preset veryfast -c:a aac -b:a 192k -movflags +faststart dist/DronesIntro_quicklook.mp4
+          ffmpeg -y -c:v libvpx-vp9 -i dist/DronesIntro_alpha.webm -filter_complex "color=c=0x3b4447:s=1920x1080:r=30[bg];[bg][0:v]overlay=shortest=1,scale=1280:720,format=yuv420p[v]" -map "[v]" -map 0:a -c:v libx264 -crf 24 -preset veryfast -c:a aac -b:a 192k -movflags +faststart dist/DronesIntro_quicklook.mp4
+          for i in 1 2 3 4 5 6; do gh release delete-asset "${{ needs.prepare.outputs.tag }}" "webm-part$i.webm" -y; done
       - name: Publish
         run: |
           gh release upload "${{ needs.prepare.outputs.tag }}" dist/* --clobber
           NOTES="Review render (half resolution, grey background) with the final mix."
-          if [ "${{ inputs.mode }}" = "final" ]; then NOTES="ProRes 4444 with alpha in 6 consecutive parts (import in order 1→6), audio stems and a quick-look MP4."; fi
+          if [ "${{ inputs.mode }}" = "final" ]; then NOTES="DronesIntro_alpha.webm: full film, VP9 with alpha + mix (import straight into Filmora). ProRes 4444 alpha fallback in 6 consecutive parts (import in order 1→6). Audio stems and a quick-look MP4 on grey."; fi
           gh release edit "${{ needs.prepare.outputs.tag }}" --notes "$NOTES"

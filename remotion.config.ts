@@ -1,7 +1,4 @@
 import { Config } from "@remotion/cli/config";
 
+// Codec, pixel format and image format are chosen per render in .github/workflows/render.yml.
 Config.setOverwriteOutput(true);
-Config.setVideoImageFormat("png");
-Config.setPixelFormat("yuva444p10le");
-Config.setCodec("prores");
-Config.setProResProfile("4444");
