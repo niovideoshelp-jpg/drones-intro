@@ -1,0 +1,42 @@
+{
+  "name": "drones-intro",
+  "version": "1.0.0",
+  "description": "Drones e defesa aerea - intro motion graphic",
+  "repository": {},
+  "license": "UNLICENSED",
+  "private": true,
+  "dependencies": {
+    "@remotion/captions": "^4.0.524",
+    "@remotion/cli": "4.0.524",
+    "@remotion/google-fonts": "^4.0.524",
+    "@remotion/install-whisper-cpp": "^4.0.524",
+    "@remotion/media": "^4.0.524",
+    "@remotion/noise": "^4.0.524",
+    "@remotion/paths": "^4.0.524",
+    "@remotion/transitions": "^4.0.524",
+    "@types/d3-geo": "3.1.1",
+    "d3-geo": "3.1.1",
+    "gsap": "^3.15.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "remotion": "4.0.524",
+    "@remotion/renderer": "4.0.524",
+    "@remotion/bundler": "4.0.524"
+  },
+  "devDependencies": {
+    "@remotion/eslint-config-flat": "4.0.524",
+    "@types/react": "19.2.7",
+    "@types/web": "0.0.166",
+    "eslint": "9.19.0",
+    "prettier": "3.8.1",
+    "typescript": "5.9.3"
+  },
+  "scripts": {
+    "dev": "remotion studio",
+    "build": "remotion bundle",
+    "lint": "eslint src && tsc"
+  },
+  "sideEffects": [
+    "*.css"
+  ]
+}

@@ -1,0 +1,127 @@
+{
+  "alarm": {
+    "dur": 2,
+    "hit": 0.72,
+    "gainDb": -10.3
+  },
+  "boom_a": {
+    "dur": 3,
+    "hit": 0.42,
+    "gainDb": -9.5
+  },
+  "boom_b": {
+    "dur": 3,
+    "hit": 0.03,
+    "gainDb": 0.4
+  },
+  "clank": {
+    "dur": 1,
+    "hit": 0.06,
+    "gainDb": -7.7
+  },
+  "click": {
+    "dur": 1,
+    "hit": 0.06,
+    "gainDb": 4.1
+  },
+  "counter": {
+    "dur": 2,
+    "hit": 0,
+    "gainDb": -2
+  },
+  "fpv": {
+    "dur": 2.94,
+    "hit": 0.87,
+    "gainDb": 5.1
+  },
+  "impact": {
+    "dur": 2,
+    "hit": 0.06,
+    "gainDb": -6.7
+  },
+  "jam": {
+    "dur": 1.82,
+    "hit": 1.14,
+    "gainDb": 7
+  },
+  "lock": {
+    "dur": 1,
+    "hit": 0.12,
+    "gainDb": -14.1
+  },
+  "missile": {
+    "dur": 3,
+    "hit": 0.33,
+    "gainDb": -12.1
+  },
+  "paper": {
+    "dur": 2,
+    "hit": 1.47,
+    "gainDb": 22.9
+  },
+  "ping": {
+    "dur": 2,
+    "hit": 0,
+    "gainDb": 10.6
+  },
+  "pop_a": {
+    "dur": 1,
+    "hit": 0.06,
+    "gainDb": -1.8
+  },
+  "pop_b": {
+    "dur": 1,
+    "hit": 0,
+    "gainDb": -10.4
+  },
+  "prop": {
+    "dur": 4,
+    "hit": 1.86,
+    "gainDb": -5.8
+  },
+  "riser": {
+    "dur": 2.49,
+    "hit": 1.23,
+    "gainDb": -14.6
+  },
+  "scan": {
+    "dur": 2,
+    "hit": 0.57,
+    "gainDb": -2.8
+  },
+  "shield": {
+    "dur": 2,
+    "hit": 0.09,
+    "gainDb": -11.1
+  },
+  "swarm": {
+    "dur": 4,
+    "hit": 1.68,
+    "gainDb": 10.4
+  },
+  "tick": {
+    "dur": 4,
+    "hit": 0.33,
+    "gainDb": 3.8
+  },
+  "typing": {
+    "dur": 1,
+    "hit": 0.39,
+    "gainDb": -1.2
+  },
+  "whoosh_a": {
+    "dur": 2,
+    "hit": 0.39,
+    "gainDb": -8.9
+  },
+  "whoosh_b": {
+    "dur": 2,
+    "hit": 0.36,
+    "gainDb": -8.2
+  },
+  "zoom": {
+    "dur": 3,
+    "hit": 0.39,
+    "gainDb": -10.2
+  }
+}

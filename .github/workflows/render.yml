@@ -1,0 +1,169 @@
+name: Drones intro - review and render
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        type: choice
+        options: [review, final]
+        default: review
+      tag:
+        description: Release tag for the final deliverables
+        default: v1
+permissions:
+  contents: write
+env:
+  TOTAL_FRAMES: 5322
+jobs:
+  audio:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx tsc && npx eslint src
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Normalise SFX and build the soundtrack from the word timings
+        run: |
+          node scripts/sfx-prep.mjs
+          node scripts/mix.mjs
+          node scripts/sync-check.mjs
+          for f in voice music sfx mix; do ffmpeg -hide_banner -i public/audio/$f.wav -af ebur128=peak=true -f null - 2>&1 | grep -A14 Summary > out/$f.loudness.txt; done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: audio
+          path: |
+            public/audio/*.wav
+            public/audio/sfx/
+            out/*.txt
+          retention-days: 5
+
+  review:
+    if: inputs.mode == 'review'
+    needs: audio
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        part: [0, 1, 2, 3]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          name: audio
+      - name: Render a quarter of the preview (dark background, half resolution)
+        run: |
+          STEP=$(( (TOTAL_FRAMES + 3) / 4 ))
+          START=$(( ${{ matrix.part }} * STEP ))
+          END=$(( START + STEP - 1 ))
+          if [ "$END" -ge "$TOTAL_FRAMES" ]; then END=$(( TOTAL_FRAMES - 1 )); fi
+          npx remotion render src/index.ts DronesIntro-preview out/preview-${{ matrix.part }}.mp4 --frames="$START-$END" --codec=h264 --crf=26 --scale=0.5 --muted --concurrency=$(nproc) --image-format=jpeg --pixel-format=yuv420p
+      - uses: actions/upload-artifact@v4
+        with:
+          name: preview-part-${{ matrix.part }}
+          path: out/preview-*.mp4
+          retention-days: 3
+
+  review-assemble:
+    if: inputs.mode == 'review'
+    needs: review
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: audio
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: preview-part-*
+          merge-multiple: true
+          path: parts
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Join and add the mix
+        run: |
+          mkdir -p out
+          for i in 0 1 2 3; do echo "file 'parts/preview-$i.mp4'"; done > parts.txt
+          ffmpeg -y -f concat -safe 0 -i parts.txt -c copy picture.mp4
+          ffmpeg -y -i picture.mp4 -i public/audio/mix.wav -map 0:v -map 1:a -c:v copy -c:a aac -b:a 192k -shortest -movflags +faststart out/DronesIntro-review.mp4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DronesIntro-review
+          path: out/DronesIntro-review.mp4
+          retention-days: 7
+
+  final:
+    if: inputs.mode == 'final'
+    needs: audio
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        part: [0, 1, 2, 3, 4, 5]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - uses: actions/download-artifact@v4
+        with:
+          name: audio
+      - name: Render one sixth with alpha (ProRes 4444) and add the mix for that range
+        run: |
+          STEP=$(( (TOTAL_FRAMES + 5) / 6 ))
+          START=$(( ${{ matrix.part }} * STEP ))
+          END=$(( START + STEP - 1 ))
+          if [ "$END" -ge "$TOTAL_FRAMES" ]; then END=$(( TOTAL_FRAMES - 1 )); fi
+          npx remotion render src/index.ts DronesIntro out/raw-${{ matrix.part }}.mov --frames="$START-$END" --codec=prores --prores-profile=4444 --pixel-format=yuva444p10le --image-format=png --muted --concurrency=$(nproc)
+          SS=$(awk "BEGIN{printf \"%.4f\", $START/30}")
+          DUR=$(awk "BEGIN{printf \"%.4f\", ($END-$START+1)/30}")
+          N=$(( ${{ matrix.part }} + 1 ))
+          ffmpeg -y -i out/raw-${{ matrix.part }}.mov -ss "$SS" -t "$DUR" -i public/audio/mix.wav -map 0:v -map 1:a -c:v copy -c:a pcm_s16le -shortest "out/DronesIntro_alpha_part$N.mov"
+          rm out/raw-${{ matrix.part }}.mov
+          ls -la out
+      - uses: actions/upload-artifact@v4
+        with:
+          name: alpha-part-${{ matrix.part }}
+          path: out/DronesIntro_alpha_part*.mov
+          retention-days: 2
+          compression-level: 0
+
+  release:
+    if: inputs.mode == 'final'
+    needs: final
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: audio
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: alpha-part-*
+          merge-multiple: true
+          path: parts
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Verify alpha, build stems zip and a quick-look MP4
+        run: |
+          mkdir -p dist
+          for f in parts/*.mov; do ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,profile,pix_fmt,width,height,nb_frames -of csv=p=0 "$f" | tee -a dist/VERIFY.txt; done
+          cp parts/*.mov dist/
+          (cd public/audio && zip -9 ../../dist/DronesIntro_audio_stems.zip mix.wav voice.wav music.wav sfx.wav)
+          for i in 1 2 3 4 5 6; do echo "file 'parts/DronesIntro_alpha_part$i.mov'"; done > list.txt
+          ffmpeg -y -f concat -safe 0 -i list.txt -filter_complex "color=c=0x3b4447:s=1920x1080:r=30[bg];[bg][0:v]overlay=shortest=1,scale=1280:720,format=yuv420p[v]" -map "[v]" -map 0:a -c:v libx264 -crf 24 -preset veryfast -c:a aac -b:a 192k -movflags +faststart dist/DronesIntro_quicklook.mp4
+          ls -la dist
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete "${{ inputs.tag }}" -y --cleanup-tag || true
+          gh release create "${{ inputs.tag }}" dist/* --title "Drones intro ${{ inputs.tag }}" --notes "ProRes 4444 with alpha in 6 consecutive parts (import in order), audio stems and a quick-look MP4."

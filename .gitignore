@@ -1,0 +1,8 @@
+node_modules/
+out/
+dist/
+*.log
+.cache/
+public/audio/*.wav
+public/audio/sfx/
+public/geo/
