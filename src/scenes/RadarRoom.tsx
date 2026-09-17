@@ -82,9 +82,9 @@ export const RadarRoom: React.FC = () => {
           <Commander x={cmdX} y={640} s={1.05} glow={cmdIn} head={Math.sin(t * 0.8) * 2} />
           <Tag x={cmdX - 60} y={880} text="AIR DEFENSE COMMANDER" p={prog(t, T.commander, T.air + 0.6, "none") * (1 - leave)} size={34} accent={C.cyan} />
           {[
-            [T.doesnt + 0.1, -90, -380],
-            [T.necessarily + 0.2, -10, -430],
-            [T.know, 70, -375],
+            [T.doesnt + 0.1, -170, -400],
+            [T.necessarily + 0.2, -90, -470],
+            [T.know, 0, -420],
           ].map(([t0, dx, dy], k) => {
             const p = q(k, t0) * (1 - prog(t, T.incoming - 0.2, T.incoming + 0.3));
             return p > 0 ? <Query key={k} x={cmdX + dx} y={640 + dy + Math.sin(t * 3 + k) * 6} s={p * (k === 1 ? 1.2 : 0.9)} color={C.amber} /> : null;
