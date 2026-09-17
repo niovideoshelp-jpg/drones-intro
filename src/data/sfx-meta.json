@@ -4,6 +4,11 @@
     "hit": 0.72,
     "gainDb": -10.3
   },
+  "arc": {
+    "dur": 2,
+    "hit": 0.93,
+    "gainDb": 3.2
+  },
   "boom_a": {
     "dur": 3,
     "hit": 0.42,
@@ -13,6 +18,16 @@
     "dur": 3,
     "hit": 0.03,
     "gainDb": 0.4
+  },
+  "boots": {
+    "dur": 2,
+    "hit": 0.6,
+    "gainDb": -3
+  },
+  "cash": {
+    "dur": 1,
+    "hit": 0,
+    "gainDb": -6
   },
   "clank": {
     "dur": 1,
@@ -29,6 +44,11 @@
     "hit": 0,
     "gainDb": -2
   },
+  "fire": {
+    "dur": 3,
+    "hit": 0.45,
+    "gainDb": -11.5
+  },
   "fpv": {
     "dur": 2.94,
     "hit": 0.87,
@@ -43,6 +63,11 @@
     "dur": 1.82,
     "hit": 1.14,
     "gainDb": 7
+  },
+  "jet": {
+    "dur": 3,
+    "hit": 0.78,
+    "gainDb": -14.8
   },
   "lock": {
     "dur": 1,
@@ -59,6 +84,11 @@
     "hit": 1.47,
     "gainDb": 22.9
   },
+  "pen": {
+    "dur": 2,
+    "hit": 0.84,
+    "gainDb": -11.4
+  },
   "ping": {
     "dur": 2,
     "hit": 0,
@@ -73,6 +103,11 @@
     "dur": 1,
     "hit": 0,
     "gainDb": -10.4
+  },
+  "powerdown": {
+    "dur": 3,
+    "hit": 0.06,
+    "gainDb": -5.1
   },
   "prop": {
     "dur": 4,
@@ -103,6 +138,11 @@
     "dur": 4,
     "hit": 0.33,
     "gainDb": 3.8
+  },
+  "train": {
+    "dur": 3,
+    "hit": 1.65,
+    "gainDb": -9.4
   },
   "typing": {
     "dur": 1,

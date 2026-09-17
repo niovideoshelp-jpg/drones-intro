@@ -9,7 +9,7 @@ const OUT = "public/audio/sfx";
 fs.mkdirSync(OUT, { recursive: true });
 const meta = {};
 const pcm = (file) => execFileSync("ffmpeg", ["-v", "error", "-i", file, "-ac", "1", "-ar", "48000", "-f", "s16le", "-"], { maxBuffer: 1 << 30 });
-for (const f of fs.readdirSync(RAW).filter((x) => x.endsWith(".mp3") && x !== "music.mp3")) {
+for (const f of fs.readdirSync(RAW).filter((x) => x.endsWith(".mp3") && !x.startsWith("music"))) {
   const name = path.basename(f, ".mp3");
   const buf = pcm(path.join(RAW, f));
   const n = buf.length / 2;

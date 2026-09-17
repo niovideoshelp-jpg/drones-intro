@@ -331,7 +331,7 @@ export const Magnifier: React.FC<Placed> = (p) => (
 
 /** Dollar price tag. */
 export const PriceTag: React.FC<Placed & { text: string; color?: string; size?: number }> = ({ text, color = C.amber, size = 64, ...p }) => {
-  const w = text.length * size * 0.46 + size * 1.3;
+  const w = text.length * size * 0.5 + size * 1.3;
   const h = size * 1.35;
   return (
     <g transform={place(p)} className={p.className} opacity={p.opacity}>
