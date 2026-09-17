@@ -87,7 +87,14 @@ jobs:
         run: |
           shopt -s nullglob
           files=(out/*part*.mp4 out/*part*.webm)
-          gh release upload "${{ needs.prepare.outputs.tag }}" "${files[@]}" --clobber
+          # release uploads answer HTTP 500 often enough that one attempt is not enough
+          for f in "${files[@]}"; do
+            for try in 1 2 3 4 5 6; do
+              if gh release upload "${{ needs.prepare.outputs.tag }}" "$f" --clobber; then break; fi
+              if [ "$try" = 6 ]; then echo "::error::could not upload $f"; exit 1; fi
+              echo "upload of $f failed (attempt $try), retrying"; sleep $((try * 20))
+            done
+          done
 
   assemble:
     needs: [prepare, render]
@@ -105,7 +112,10 @@ jobs:
         run: |
           mkdir -p parts dist
           if [ "${{ inputs.mode }}" = "review" ]; then P="review-part*"; else P="webm-part*"; fi
-          gh release download "${{ needs.prepare.outputs.tag }}" -D parts -p "$P"
+          for try in 1 2 3 4 5; do
+            if gh release download "${{ needs.prepare.outputs.tag }}" -D parts -p "$P" --clobber; then break; fi
+            echo "download failed (attempt $try), retrying"; sleep $((try * 15))
+          done
           ls -la parts
       - name: Review MP4
         if: inputs.mode == 'review'
@@ -130,7 +140,13 @@ jobs:
           for i in $(seq 1 $CHUNKS); do gh release delete-asset "${{ needs.prepare.outputs.tag }}" "webm-part$i.webm" -y; done
       - name: Publish
         run: |
-          gh release upload "${{ needs.prepare.outputs.tag }}" dist/* --clobber
+          for x in dist/*; do
+            for try in 1 2 3 4 5 6; do
+              if gh release upload "${{ needs.prepare.outputs.tag }}" "$x" --clobber; then break; fi
+              if [ "$try" = 6 ]; then echo "::error::could not upload $x"; exit 1; fi
+              echo "upload of $x failed (attempt $try), retrying"; sleep $((try * 20))
+            done
+          done
           NOTES="Review render (half resolution, grey background) with the final mix."
           if [ "${{ inputs.mode }}" = "final" ]; then NOTES="${NAME}_alpha.webm: full part, VP9 with alpha + mix (import straight into Filmora). Audio stems and a quick-look MP4 on grey."; fi
           gh release edit "${{ needs.prepare.outputs.tag }}" --notes "$NOTES"
