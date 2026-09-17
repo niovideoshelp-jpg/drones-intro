@@ -47,7 +47,7 @@ export const Cities: React.FC = () => {
   const t = useTime();
   if (t < CITIES_RANGE[0]) return null;
 
-  const cityA = win(t, T.cheap - 0.4, T.near - 0.2, 0.5, 0.5);
+  const cityA = win(t, T.and - 0.2, T.near - 0.2, 0.4, 0.5);
   const fire = win(t, T.throw - 0.2, T.somewhere + 1.4, 0.2, 0.6);
   const rain = win(t, T.come - 0.2, T.warhead + 0.6, 0.4, 0.6);
   const hit = prog(t, T.drone - 0.25, T.drone + 0.9, "none");
@@ -59,11 +59,11 @@ export const Cities: React.FC = () => {
       {cityA > 0 && (
         <g opacity={cityA}>
           {[520, 960, 1400].map((x, i) => (
-            <g key={x} transform={`translate(${x} ${900}) scale(${0.72 * ease("back.out(1.3)")(clamp01((t - T.cheap + 0.4 - i * 0.12) / 0.6))})`}>
+            <g key={x} transform={`translate(${x} ${900}) scale(${0.72 * ease("back.out(1.3)")(clamp01((t - T.and + 0.2 - i * 0.12) / 0.7))})`}>
               <CityBlock />
             </g>
           ))}
-          <Tag x={960} y={210} text="DANGEROUS OVER CITIES" p={prog(t, T.dangerous - 0.2, T.cities + 0.4, "none")} size={40} accent={C.red} />
+          <Tag x={960} y={210} text="DANGEROUS OVER CITIES" p={prog(t, T.and, T.cities + 0.4, "none")} size={40} accent={C.red} />
           <g transform={`translate(250 ${900}) scale(${0.85 * ease("back.out(1.4)")(clamp01((t - T.gun + 0.3) / 0.6))})`}>
             <AAGunBig fire={fire} />
           </g>

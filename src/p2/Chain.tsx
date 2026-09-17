@@ -80,8 +80,8 @@ export const Chain: React.FC = () => {
     <Stage>
       {chainA > 0 && (
         <g opacity={chainA}>
-          <ShahedTop x={200} y={250} r={90} s={0.28} />
-          <path d={`M120,250 L${200 + 60},250`} stroke={C.red} strokeWidth={4} strokeDasharray="10 8" opacity={0.6} />
+          <ShahedTop x={200} y={250 + Math.sin(t * 1.7) * 14} r={90} s={0.28} />
+          <path d={`M120,250 L${200 + 60},250`} stroke={C.red} strokeWidth={4} strokeDasharray="10 8" strokeDashoffset={-t * 26} opacity={0.6} />
           {STEPS.map((s, i) => {
             const p = ease("back.out(1.6)")(clamp01((t - s.t + 0.25) / 0.45));
             const x = 330 + i * 330;
@@ -98,6 +98,7 @@ export const Chain: React.FC = () => {
                 )}
                 <g transform={`translate(${x} ${y}) scale(${p})`}>
                   <circle r={112} fill={C.ink} fillOpacity={0.92} stroke={C.cyan} strokeWidth={6} />
+                  <circle r={140} fill="none" stroke={C.cyan} strokeWidth={3} strokeDasharray="9 13" opacity={0.55} transform={`rotate(${t * 28 + i * 40})`} />
                   <Big x={0} y={26} text={String(i + 1)} size={84} color={C.cyan} />
                 </g>
                 <Tag x={x} y={y + 170} text={s.label} p={prog(t, s.t, s.t + 0.5, "none")} size={30} accent={C.cyan} />

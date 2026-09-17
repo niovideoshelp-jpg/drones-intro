@@ -73,7 +73,7 @@ export const Why: React.FC = () => {
   const answer = prog(t, T.first - 0.1, T.simple + 0.2, "power2.out");
 
   /* ---- it is not about the drone ---- */
-  const bA = win(t, T.defense - 0.2, T.firing + 0.6, 0.4, 0.5);
+  const bA = win(t, T.defense - 0.2, T.rational + 0.7, 0.4, 0.5);
   const droneDim = prog(t, T.drone - 0.1, T.drone + 0.6);
   const spotlight = prog(t, T.its - 0.2, T.behind + 0.3, "power2.inOut");
   const droneX = 150 + prog(t, T.defense, T.million, "none") * 620;

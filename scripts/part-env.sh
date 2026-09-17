@@ -28,7 +28,7 @@ case "$1" in
   part3)
     echo "COMP=Part3"
     echo "NAME=Part3"
-    echo "FRAMES=11610"
+    echo "FRAMES=11595"
     echo "MIX=scripts/mix-p3.mjs"
     echo "PREFIX=p3-"
     echo "CHUNKS=12"
