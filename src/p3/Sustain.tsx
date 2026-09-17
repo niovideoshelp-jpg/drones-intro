@@ -16,13 +16,13 @@ const T = {
   future: at("future,"),
   replace: at("replace"),
   weapon: at("weapon."),
-  which: at("Which"),
-  top: at("top"),
+  which: at("Which", 241.5),
+  top: at("top", 242),
   chain: at("chain,"),
   missiles: at("missiles", 244.5),
-  there: at("there."),
+  there: at("there.", 245.5),
   when: at("When", 247),
-  far: at("far"),
+  far: at("far", 247.6),
   fast: at("fast,", 250),
   shrugging: at("shrugging"),
   layers: at("layers,", 252),
@@ -31,7 +31,7 @@ const T = {
   patriot: at("Patriot", 256),
   aim: at("AIM-120"),
   essential: at("essential."),
-  change: at("change"),
+  change: at("change", 260.3),
   rid: at("rid"),
   keeping: at("keeping"),
   firstAnswer: at("answer", 266),
@@ -48,27 +48,27 @@ const T = {
   cash: at("cash"),
   problem: at("problem", 286),
   building: at("building"),
-  using: at("using"),
+  using: at("using", 287),
   stops: at("stops"),
   economic: at("economic", 291),
   industrial: at("industrial"),
   said: at("said,"),
   doomed: at("doomed."),
-  lasers: at("Lasers,"),
-  microwaves: at("microwaves,"),
+  lasers: at("Lasers,", 298.6),
+  microwaves: at("microwaves,", 299.5),
   guns: at("guns,", 301),
   warfare: at("warfare,", 302),
   drones: at("drones", 303.8),
   cut: at("cut"),
-  attacks: at("attacks."),
-  better: at("Better"),
+  attacks: at("attacks.", 305.5),
+  better: at("Better", 306),
   networks: at("networks"),
   shots: at("shots,"),
   passive: at("passive"),
   dispersing: at("dispersing"),
   camouflage: at("camouflage,"),
   hardening: at("hardening"),
-  damage: at("damage"),
+  damage: at("damage", 315.8),
   through: at("through.", 320),
 };
 export const SUSTAIN_RANGE = [T.theyll - 0.3, T.through + 0.8] as const;
@@ -193,10 +193,10 @@ export const Sustain: React.FC = () => {
               <g transform="translate(430 780) scale(0.6)">
                 <Factory stop={0} />
               </g>
-              <Tag x={430} y={930} text="BUILT" p={rate} size={26} accent={C.green} />
-              <Tag x={1450} y={930} text="USED" p={rate} size={26} accent={C.red} />
-              <rect x={640} y={760} width={220 * rate} height={44} fill={C.green} stroke={C.ink} strokeWidth={4} />
-              <rect x={640} y={830} width={760 * rate} height={44} fill={C.red} stroke={C.ink} strokeWidth={4} />
+              <Tag x={430} y={905} text="BUILT" p={rate} size={26} accent={C.green} />
+              <Tag x={1450} y={905} text="USED" p={rate} size={26} accent={C.red} />
+              <rect x={640} y={740} width={220 * rate} height={44} fill={C.green} stroke={C.ink} strokeWidth={4} />
+              <rect x={640} y={806} width={760 * rate} height={44} fill={C.red} stroke={C.ink} strokeWidth={4} />
             </g>
           )}
           {industrial > 0 && (
@@ -217,14 +217,14 @@ export const Sustain: React.FC = () => {
             { t0: T.warfare, kind: "ew", label: "EW", x: 1290 },
             { t0: T.drones, kind: "drone", label: "INTERCEPTORS", x: 1620 },
           ].map((c) => {
-            const p = ease("back.out(1.5)")(clamp01((t - c.t0 + 0.3) / 0.45));
+            const p = ease("back.out(1.5)")(clamp01((t - c.t0 + 0.3) / 0.45)) * (1 - prog(t, T.networks - 0.7, T.networks - 0.2));
             if (p <= 0) return null;
             return (
               <g key={c.label} opacity={p}>
                 <g transform={`translate(${c.x} 420) scale(${p})`}>
                   <circle r={112} fill={C.ink} fillOpacity={0.9} stroke={C.green} strokeWidth={5} />
                   <g transform="scale(0.45) translate(0 120)">
-                    {c.kind === "laser" && <LaserTurret beam={0.7} />}
+                    {c.kind === "laser" && <LaserTurret beam={0} />}
                     {c.kind === "mw" && <MicrowaveEmitter fire={0.7} />}
                     {c.kind === "gun" && <SPAAG fire={0.6} />}
                   </g>
@@ -236,7 +236,7 @@ export const Sustain: React.FC = () => {
             );
           })}
           {cutP > 0 && (
-            <g opacity={cutP}>
+            <g opacity={cutP * (1 - prog(t, T.networks - 0.7, T.networks - 0.2))}>
               <rect x={430} y={700} width={1060} height={46} rx={10} fill={C.ink} stroke={C.red} strokeWidth={4} />
               <rect x={430} y={700} width={1060 * (1 - 0.72 * cutP)} height={46} rx={10} fill={C.red} />
               <Tag x={960} y={790} text="COST OF DEALING WITH MASS ATTACKS" p={cutP} size={28} accent={C.green} />
@@ -253,11 +253,11 @@ export const Sustain: React.FC = () => {
             if (p <= 0) return null;
             return (
               <g key={c.label} opacity={p}>
-                <g transform={`translate(${c.x} 880) scale(${0.8 * p})`}>
+                <g transform={`translate(${c.x} 520) scale(${0.85 * p})`}>
                   <circle r={110} fill={C.ink} fillOpacity={0.9} stroke={C.cyan} strokeWidth={5} />
                   {c.kind === "sensors" ? <Glyph kind="radar" s={1} /> : <Passive kind={c.kind} s={0.95} />}
                 </g>
-                <Tag x={c.x} y={990} text={c.label} p={prog(t, c.t0, c.t0 + 0.4, "none")} size={22} accent={C.cyan} />
+                <Tag x={c.x} y={680} text={c.label} p={prog(t, c.t0, c.t0 + 0.4, "none")} size={24} accent={C.cyan} />
               </g>
             );
           })}

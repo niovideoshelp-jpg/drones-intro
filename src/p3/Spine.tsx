@@ -10,8 +10,8 @@ export const LAYERS = [
   { key: "ew", label: "ELECTRONIC WAR", t: at("warfare.", 51), color: C.blue, from: at("Then") - 0.2, to: at("When") },
   { key: "guns", label: "GUNS & ROCKETS", t: at("guns"), color: C.green, from: at("When") - 0.2, to: at("Another") },
   { key: "drones", label: "INTERCEPTOR DRONES", t: at("drones.", 133), color: C.amber, from: at("Another") - 0.2, to: at("And", 171) },
-  { key: "energy", label: "DIRECTED ENERGY", t: at("weapons.", 177), color: "#9BE8FF", from: at("And", 171) - 0.2, to: at("Which") },
-  { key: "missiles", label: "EXPENSIVE MISSILES", t: at("missiles", 244.5), color: C.red, from: at("Which") - 0.2, to: 999 },
+  { key: "energy", label: "DIRECTED ENERGY", t: at("weapons.", 177), color: "#9BE8FF", from: at("And", 171) - 0.2, to: at("Which", 241.5) },
+  { key: "missiles", label: "EXPENSIVE MISSILES", t: at("missiles", 244.5), color: C.red, from: at("Which", 241.5) - 0.2, to: 999 },
 ];
 
 const RAIL_Y = 985;

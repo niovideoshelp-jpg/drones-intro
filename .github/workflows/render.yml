@@ -79,15 +79,15 @@ jobs:
             npx remotion render src/index.ts "$COMP-preview" "out/review-part$N.mp4" --frames="$START-$END" --codec=h264 --crf=26 --scale=0.5 --muted --concurrency=$(nproc) --image-format=jpeg --pixel-format=yuv420p
           else
             npx remotion render src/index.ts "$COMP" out/raw.mov --frames="$START-$END" --codec=prores --prores-profile=4444 --pixel-format=yuva444p10le --image-format=png --muted --concurrency=$(nproc)
-            SS=$(awk "BEGIN{printf \"%.4f\", $START/30}")
-            DUR=$(awk "BEGIN{printf \"%.4f\", ($END-$START+1)/30}")
             ffmpeg -y -i out/raw.mov -c:v libvpx-vp9 -pix_fmt yuva420p -crf 28 -b:v 0 -row-mt 1 -deadline good -cpu-used 3 -auto-alt-ref 0 -g 60 -an -metadata:s:v:0 alpha_mode=1 "out/webm-part$N.webm"
-            ffmpeg -y -i out/raw.mov -ss "$SS" -t "$DUR" -i "public/audio/${PREFIX}mix.wav" -map 0:v -map 1:a -c:v prores_ks -profile:v 4 -pix_fmt yuva444p10le -alpha_bits 8 -qscale:v 13 -vendor apl0 -c:a pcm_s16le -shortest "out/${NAME}_alpha_ProRes4444_part$N.mov"
             rm out/raw.mov
           fi
           ls -la out
       - name: Upload part to the release
-        run: gh release upload "${{ needs.prepare.outputs.tag }}" out/*part* --clobber
+        run: |
+          shopt -s nullglob
+          files=(out/*part*.mp4 out/*part*.webm)
+          gh release upload "${{ needs.prepare.outputs.tag }}" "${files[@]}" --clobber
 
   assemble:
     needs: [prepare, render]
@@ -132,5 +132,5 @@ jobs:
         run: |
           gh release upload "${{ needs.prepare.outputs.tag }}" dist/* --clobber
           NOTES="Review render (half resolution, grey background) with the final mix."
-          if [ "${{ inputs.mode }}" = "final" ]; then NOTES="${NAME}_alpha.webm: full part, VP9 with alpha + mix (import straight into Filmora). ProRes 4444 alpha fallback in 6 consecutive parts (import in order 1→6). Audio stems and a quick-look MP4 on grey."; fi
+          if [ "${{ inputs.mode }}" = "final" ]; then NOTES="${NAME}_alpha.webm: full part, VP9 with alpha + mix (import straight into Filmora). Audio stems and a quick-look MP4 on grey."; fi
           gh release edit "${{ needs.prepare.outputs.tag }}" --notes "$NOTES"

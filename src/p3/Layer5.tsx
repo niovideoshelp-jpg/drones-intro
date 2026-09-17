@@ -16,12 +16,12 @@ const T = {
   weapons: at("weapons.", 177),
   lasers: at("Lasers"),
   advantage: at("advantage."),
-  once: at("Once"),
+  once: at("Once", 180),
   installed: at("installed,"),
   shot: at("shot", 183),
   fraction: at("fraction"),
   costs: at("costs,"),
-  ammunition: at("ammunition"),
+  ammunition: at("ammunition", 187),
   power: at("power."),
   uk: at("Kingdom"),
   dragonfire: at("DragonFire"),
@@ -55,7 +55,7 @@ export const Layer5: React.FC = () => {
   if (t < LAYER5_RANGE[0] || t > LAYER5_RANGE[1]) return null;
 
   const laserA = win(t, T.and - 0.2, T.microwaves - 0.4, 0.4, 0.5);
-  const turretIn = ease("back.out(1.4)")(clamp01((t - T.directed + 0.2) / 0.7));
+  const turretIn = ease("back.out(1.4)")(clamp01((t - T.and) / 0.8));
   const beam = win(t, T.lasers - 0.2, T.shot2 + 0.6, 0.3, 0.5);
   const costP = prog(t, T.shot - 0.2, T.costs + 0.3, "power2.inOut");
   const powerP = prog(t, T.ammunition - 0.2, T.power + 0.3, "power2.out");
@@ -74,6 +74,17 @@ export const Layer5: React.FC = () => {
           <g transform={`translate(560 900) scale(${1.05 * turretIn})`}>
             <LaserTurret beam={beam} angle={-46} />
           </g>
+          {/* while it charges, the targets keep coming */}
+          {beam <= 0.5 && turretIn > 0 && (
+            <g opacity={turretIn}>
+              {[0, 1, 2].map((i) => {
+                const k = (((t - T.and) * 0.075 + i * 0.34) % 1 + 1) % 1;
+                return <ShahedTop key={i} x={1880 - k * 980} y={230 + i * 110} r={-90} s={0.22} opacity={0.9} />;
+              })}
+              <Pulse x={560} y={840} p={((t * 0.7) % 1 + 1) % 1} r={260} color="#9BE8FF" width={5} />
+              <path d="M620,830 L1290,300" stroke="#9BE8FF" strokeWidth={3} strokeDasharray="10 14" strokeDashoffset={-t * 60} opacity={0.45} />
+            </g>
+          )}
           {beam > 0.5 && (
             <g>
               <ShahedTop x={1290} y={250} r={-100} s={0.28} opacity={1 - prog(t, T.shot, T.shot + 0.5)} />
@@ -148,7 +159,7 @@ export const Layer5: React.FC = () => {
               </g>
             );
           })}
-          <Tag x={1400} y={880} text="ATTRACTIVE AGAINST SWARMS" p={prog(t, T.swarms - 0.3, T.swarms + 0.5, "none")} size={30} accent={C.cyan} />
+          <Tag x={1400} y={848} text="ATTRACTIVE AGAINST SWARMS" p={prog(t, T.swarms - 0.3, T.swarms + 0.5, "none")} size={30} accent={C.cyan} />
         </g>
       )}
 
@@ -181,15 +192,15 @@ export const Layer5: React.FC = () => {
             if (p <= 0) return null;
             return (
               <g key={w.label} opacity={p}>
-                <g transform={`translate(${w.x} 760) scale(${p})`}>
+                <g transform={`translate(${w.x} 730) scale(${p})`}>
                   <circle r={104} fill={C.ink} fillOpacity={0.9} stroke="#9BE8FF" strokeWidth={5} />
                   <Weather kind={w.kind} s={0.9} />
                 </g>
-                <Tag x={w.x} y={900} text={w.label} p={prog(t, w.t0, w.t0 + 0.4, "none")} size={26} accent="#9BE8FF" />
+                <Tag x={w.x} y={862} text={w.label} p={prog(t, w.t0, w.t0 + 0.4, "none")} size={26} accent="#9BE8FF" />
               </g>
             );
           })}
-          {t > T.conditions - 0.3 && <NoSign x={960} y={760} p={prog(t, T.conditions - 0.2, T.conditions + 0.5, "none")} r={430} />}
+          {t > T.conditions - 0.3 && <NoSign x={960} y={730} p={prog(t, T.conditions - 0.2, T.conditions + 0.5, "none")} r={420} />}
         </g>
       )}
     </Stage>

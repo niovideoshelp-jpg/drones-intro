@@ -78,8 +78,8 @@ export const Layers12: React.FC = () => {
 
   /* ---------------- layer 1: information ---------------- */
   const infoA = win(t, T.first - 0.2, T.then - 0.1, 0.4, 0.5);
-  const droneP = ease("back.out(1.4)")(clamp01((t - T.before + 0.2) / 0.7));
-  const droneX = 1500 - prog(t, T.before, T.after, "none") * 520;
+  const droneP = ease("back.out(1.4)")(clamp01((t - T.information + 0.2) / 0.7));
+  const droneX = 1500 - prog(t, T.information, T.after, "none") * 520;
   const idP = prog(t, T.identify - 0.1, T.threat + 0.3, "back.out(2)");
   const trajP = prog(t, T.trajectory - 0.2, T.after + 0.2, "power2.out");
 
@@ -95,7 +95,13 @@ export const Layers12: React.FC = () => {
     <Stage>
       {infoA > 0 && (
         <g opacity={infoA}>
-          <Tag x={960} y={170} text="KNOW WHAT IS COMING" p={prog(t, T.know - 0.2, T.coming + 0.4, "none")} size={40} accent={C.cyan} />
+          <Tag x={960} y={170} text="KNOW WHAT IS COMING" p={prog(t, T.information - 0.2, T.coming + 0.4, "none")} size={40} accent={C.cyan} />
+          {/* the picture being assembled — live from the first word of the layer */}
+          <g opacity={prog(t, T.information - 0.3, T.information + 0.5) * (1 - prog(t, T.identify, T.identify + 0.6))}>
+            <circle cx={960} cy={470} r={34} fill="none" stroke={C.cyan} strokeWidth={4} />
+            <circle cx={960} cy={470} r={92} fill="none" stroke={C.cyan} strokeWidth={3} strokeDasharray="10 12" transform={`rotate(${t * 40} 960 470)`} opacity={0.8} />
+            <Pulse x={960} y={470} p={((t * 0.6) % 1 + 1) % 1} r={300} color={C.cyan} width={4} />
+          </g>
           {/* the incoming object */}
           <g opacity={droneP}>
             <ShahedTop x={droneX} y={330} r={-90} s={0.34} />
@@ -236,7 +242,7 @@ export const Layers12: React.FC = () => {
                   <FiberSpool pay={pay} />
                 </g>
                 <ShahedTop x={430 + 900 * pay} y={700 - 240 * pay} r={-70} s={0.3 * p} />
-                <Tag x={620} y={880} text="FIBRE-OPTIC LINK" p={prog(t, T.cable - 0.2, T.cable + 0.5, "none")} size={28} accent={C.cyan} anchor="start" />
+                <Tag x={620} y={846} text="FIBRE-OPTIC LINK" p={prog(t, T.cable - 0.2, T.cable + 0.5, "none")} size={28} accent={C.cyan} anchor="start" />
                 <NoSign x={1180} y={420} p={prog(t, T.eliminates, T.eliminates + 0.6, "none")} r={70} />
               </g>
             );

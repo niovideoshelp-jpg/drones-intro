@@ -17,10 +17,10 @@ const T = {
   jammers: at("Jammers"),
   autonomous: at("autonomous", 327.8),
   guns: at("Guns", 329),
-  range: at("range."),
+  range: at("range.", 329.5),
   cheapInt: at("interceptors"),
   saturated: at("saturated"),
-  conventional: at("Conventional"),
+  conventional: at("Conventional", 332.6),
   necessary: at("necessary"),
   threats: at("threats.", 339),
   so: at("So", 339.5),
@@ -32,25 +32,25 @@ const T = {
   its: at("It's", 346),
   standard: at("standard"),
   answer: at("answer,", 349),
-  unsustainable: at("unsustainable."),
+  unsustainable: at("unsustainable.", 349.2),
   futureAD: at("future", 352),
   choose: at("choose."),
   ignore: at("Ignore"),
   realThreat: at("threat.", 357),
-  jam: at("Jam"),
+  jam: at("Jam", 357.5),
   jammed: at("jammed."),
-  shoot: at("Shoot"),
-  rangeGuns: at("guns"),
+  shoot: at("Shoot", 359.3),
+  rangeGuns: at("guns", 359.5),
   dronesShoot: at("drones.", 362),
   save: at("save"),
   nothing: at("nothing"),
-  enough: at("enough."),
+  enough: at("enough.", 366.1),
   because: at("Because", 368),
   winner: at("winner"),
   most: at("most", 371.8),
   keep: at("keep"),
   thousands: at("thousands", 375),
-  again: at("again,"),
+  again: at("again,", 375.5),
   sources: at("sources"),
   description: at("description,"),
   check: at("check"),
@@ -86,10 +86,10 @@ export const Choose: React.FC = () => {
   const chooseP = prog(t, T.futureAD - 0.2, T.choose + 0.4, "back.out(1.6)");
 
   const rulesA = win(t, T.ignore - 0.4, T.because - 0.2, 0.4, 0.5);
-  const warA = win(t, T.because - 0.3, T.again + 0.4, 0.4, 0.5);
-  const srcA = win(t, T.again - 0.2, P3_DURATION_S + 1, 0.5, 0.1);
+  const warA = win(t, T.because - 0.3, T.sources - 0.5, 0.4, 0.5);
+  const srcA = win(t, T.sources - 1.2, P3_DURATION_S + 1, 0.5, 0.1);
 
-  const counter = Math.round(clamp01((t - T.keep) / (T.thousands + 0.6 - T.keep)) * 4000);
+  const counter = Math.round(clamp01((t - T.because) / (T.thousands + 0.6 - T.because)) * 4000);
 
   return (
     <Stage>
@@ -105,7 +105,7 @@ export const Choose: React.FC = () => {
                   <g transform={`translate(${f.x} 470) scale(${p})`}>
                     <circle r={126} fill={C.ink} fillOpacity={0.9} stroke={C.red} strokeWidth={5} />
                     <g transform="scale(0.5) translate(0 120)">
-                      {i === 0 && <LaserTurret beam={0.4} />}
+                      {i === 0 && <LaserTurret beam={0} />}
                       {i === 2 && <SPAAG fire={0.3} />}
                     </g>
                     {i === 0 && <Weather kind="fog" s={0.7} y={-40} />}
@@ -126,10 +126,10 @@ export const Choose: React.FC = () => {
             })}
             {needed > 0 && (
               <g opacity={needed}>
-                <g transform={`translate(960 830) scale(${0.8 * needed})`}>
+                <g transform={`translate(960 780) scale(${0.7 * needed})`}>
                   <Interceptor kind="pac3" flame={0.6} />
                 </g>
-                <Tag x={960} y={930} text="STILL NECESSARY FOR THE HARDEST THREATS" p={needed} size={30} accent={C.red} />
+                <Tag x={960} y={826} text="STILL NECESSARY FOR THE HARDEST THREATS" p={needed} size={30} accent={C.red} />
               </g>
             )}
           </g>
@@ -139,11 +139,11 @@ export const Choose: React.FC = () => {
           <g opacity={concA}>
             <g transform="translate(540 430)">
               <ShahedTop s={0.42} r={-90} />
-              <PriceTag x={-150} y={200} text="$20,000" size={50} color={C.amber} s={prog(t, T.d20 - 0.2, T.d20 + 0.3, "back.out(2)")} />
+              <PriceTag x={-150} y={168} text="$20,000" size={50} color={C.amber} s={prog(t, T.d20 - 0.2, T.d20 + 0.3, "back.out(2)")} />
             </g>
             <g transform="translate(1380 430)">
               <Interceptor kind="pac3" s={0.85} r={-20} flame={0.4} />
-              <PriceTag x={-130} y={200} text="$1M" size={50} color={C.red} s={prog(t, T.millionDollar - 0.2, T.millionDollar + 0.3, "back.out(2)")} />
+              <PriceTag x={-130} y={168} text="$1M" size={50} color={C.red} s={prog(t, T.millionDollar - 0.2, T.millionDollar + 0.3, "back.out(2)")} />
             </g>
             <Big x={960} y={450} text="USELESS?" size={72} color={C.cream} opacity={prog(t, T.useless - 0.5, T.useless)} />
             <StrikeLine x1={790} y1={380} x2={1130} y2={490} p={cross} width={14} />
@@ -154,7 +154,7 @@ export const Choose: React.FC = () => {
                 <Big x={0} y={70} text="UNSUSTAINABLE" size={54} color={C.red} />
               </g>
             )}
-            {chooseP > 0 && <Tag x={960} y={900} text="AIR DEFENCE HAS TO LEARN HOW TO CHOOSE" p={chooseP} size={40} accent={C.amber} />}
+            {chooseP > 0 && <Tag x={960} y={852} text="AIR DEFENCE HAS TO LEARN HOW TO CHOOSE" p={chooseP} size={40} accent={C.amber} />}
           </g>
         )}
 
@@ -195,7 +195,7 @@ export const Choose: React.FC = () => {
         {srcA > 0 && (
           <g opacity={srcA}>
             {[0, 1, 2].map((i) => {
-              const p = ease("back.out(1.6)")(clamp01((t - T.sources + 0.6 - i * 0.2) / 0.6));
+              const p = ease("back.out(1.6)")(clamp01((t - T.sources + 1.1 - i * 0.2) / 0.6));
               if (p <= 0) return null;
               return <DocPage key={i} x={700 + i * 260} y={440} s={0.52 * p} r={(i - 1) * 8} lines={prog(t, T.sources, T.description)} chart={prog(t, T.sources + 0.3, T.description + 0.5)} check={prog(t, T.check, T.check + 0.5)} tab={[C.blue, C.amber, C.red][i]} />;
             })}

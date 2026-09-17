@@ -24,7 +24,7 @@ const T = {
   tens: at("tens"),
   dollars: at("dollars,"),
   less: at("less."),
-  better: at("better"),
+  better: at("better", 108),
   trade: at("trade"),
   missile: at("missile.", 113),
   but: at("But", 114),
@@ -44,18 +44,18 @@ const T = {
   instead: at("Instead"),
   send: at("send"),
   chase: at("chase"),
-  destroy: at("destroy"),
+  destroy: at("destroy", 144),
   brings: at("brings"),
   attacking: at("attacking,"),
-  cases: at("cases,"),
+  cases: at("cases,", 150),
   threatCheap: at("threat.", 154),
   butThey: at("But", 155),
-  depend: at("depend"),
+  depend: at("depend", 155),
   sensors: at("sensors,", 158),
   operators: at("operators,"),
   autonomous: at("autonomous"),
   struggle: at("struggle"),
-  fast: at("fast"),
+  fast: at("fast", 165),
   weather: at("weather,"),
   directions: at("directions"),
   once: at("once.", 170),
@@ -88,6 +88,7 @@ export const Layers34: React.FC = () => {
 
   /* ---- interceptor drones ---- */
   const dA = win(t, T.another - 0.2, T.butThey - 0.2, 0.4, 0.5);
+  const approach = prog(t, T.interceptorD, T.send - 0.2, "none");
   const chase = prog(t, T.send - 0.2, T.destroy + 0.2, "power1.inOut");
   const kill = prog(t, T.destroy + 0.2, T.destroy + 1.2, "none");
   const bars = prog(t, T.brings - 0.2, T.attacking + 0.4, "power2.inOut");
@@ -142,7 +143,7 @@ export const Layers34: React.FC = () => {
                   <Interceptor kind="aim120" s={0.4} flame={1} />
                 </g>
               )}
-              <Tag x={560} y={900} text="APKWS GUIDED ROCKET" p={prog(t, T.apkws - 0.2, T.apkws + 0.6, "none")} size={26} accent={C.green} />
+              <Tag x={560} y={862} text="APKWS GUIDED ROCKET" p={prog(t, T.apkws - 0.2, T.apkws + 0.6, "none")} size={26} accent={C.green} />
             </g>
           )}
           {priceP > 0 && <PriceTag x={330} y={330} text="TENS OF THOUSANDS" size={44} color={C.green} s={priceP} />}
@@ -187,10 +188,17 @@ export const Layers34: React.FC = () => {
           <Tag x={960} y={160} text="INTERCEPTOR DRONES" p={prog(t, T.another - 0.1, T.interceptorD + 0.4, "none")} size={38} accent={C.amber} />
           <Tag x={430} y={260} text="UKRAINE" p={prog(t, T.ukraine - 0.1, T.economics + 0.4, "none")} size={32} accent={C.blue} />
           {/* the chase */}
+          {/* the raid that pays for all this, running behind the chase */}
+          <g opacity={0.8 * (1 - prog(t, T.brings - 0.6, T.brings))}>
+            {[0, 1, 2, 3].map((i) => {
+              const k = (((t - T.another) * 0.09 + i * 0.25) % 1 + 1) % 1;
+              return <ShahedTop key={i} x={1980 - k * 2100} y={720 + (i % 2) * 120} r={-90} s={0.18} opacity={0.85} />;
+            })}
+          </g>
           {kill <= 0 && (
             <g>
-              <ShahedTop x={420 + 1040 * chase} y={420 - 60 * chase} r={-90} s={0.3} />
-              <FPVSide x={180 + 1160 * chase} y={560 - 120 * chase} s={0.6} r={-14} />
+              <ShahedTop x={-120 + 540 * approach + 1040 * chase} y={420 - 60 * chase} r={-90} s={0.3} />
+              <FPVSide x={180 + 1160 * chase} y={560 - 120 * chase + (1 - chase) * Math.sin(t * 3.2) * 12} s={0.6} r={-14} />
               <path d={`M180,600 L${180 + 1160 * chase},${560 - 120 * chase}`} stroke={C.amber} strokeWidth={4} strokeDasharray="12 10" opacity={0.7} />
             </g>
           )}
@@ -198,10 +206,10 @@ export const Layers34: React.FC = () => {
           {/* the two costs converging */}
           {bars > 0 && (
             <g>
-              <rect x={640} y={860 - 180 * (1 - 0.55 * bars - 0.25 * under)} width={180} height={180 * (1 - 0.55 * bars - 0.25 * under)} fill={C.red} stroke={C.ink} strokeWidth={4} />
-              <rect x={1100} y={860 - 150} width={180} height={150} fill={C.amber} stroke={C.ink} strokeWidth={4} />
-              <Tag x={730} y={900} text="DEFENDING" p={bars} size={24} accent={C.red} />
-              <Tag x={1190} y={900} text="ATTACKING" p={bars} size={24} accent={C.amber} />
+              <rect x={640} y={820 - 180 * (1 - 0.55 * bars - 0.25 * under)} width={180} height={180 * (1 - 0.55 * bars - 0.25 * under)} fill={C.red} stroke={C.ink} strokeWidth={4} />
+              <rect x={1100} y={820 - 150} width={180} height={150} fill={C.amber} stroke={C.ink} strokeWidth={4} />
+              <Tag x={730} y={862} text="DEFENDING" p={bars} size={24} accent={C.red} />
+              <Tag x={1190} y={862} text="ATTACKING" p={bars} size={24} accent={C.amber} />
               {under > 0.4 && <Big x={960} y={620} text="CHEAPER" size={70} color={C.green} opacity={under} />}
             </g>
           )}
@@ -236,7 +244,7 @@ export const Layers34: React.FC = () => {
             if (p <= 0) return null;
             return (
               <g key={d.label} opacity={p}>
-                <g transform={`translate(${d.x} 790) scale(${p})`}>
+                <g transform={`translate(${d.x} 760) scale(${p})`}>
                   <circle r={110} fill={C.ink} fillOpacity={0.9} stroke={C.red} strokeWidth={5} />
                   {d.icon === "fast" && (
                     <g>
@@ -256,7 +264,7 @@ export const Layers34: React.FC = () => {
                     </g>
                   )}
                 </g>
-                <Tag x={d.x} y={930} text={d.label} p={prog(t, d.t0, d.t0 + 0.5, "none")} size={26} accent={C.red} />
+                <Tag x={d.x} y={862} text={d.label} p={prog(t, d.t0, d.t0 + 0.5, "none")} size={26} accent={C.red} />
                 <Pulse x={d.x} y={790} p={prog(t, d.t0, d.t0 + 0.9, "none")} r={190} color={C.red} width={5} />
               </g>
             );

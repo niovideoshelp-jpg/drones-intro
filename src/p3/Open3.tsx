@@ -88,7 +88,7 @@ export const Open3: React.FC = () => {
           <g transform={`translate(960 640) scale(${0.95 * noneP})`}>
             <circle r={230} fill={C.ink} fillOpacity={0.9} stroke={C.cream} strokeWidth={6} />
             <g transform="translate(0 90) scale(0.85)">
-              <LaserTurret beam={0.8} angle={-30} />
+              <LaserTurret beam={0} angle={-30} />
             </g>
           </g>
           <NoSign x={960} y={640} p={cross} r={240} />
