@@ -182,7 +182,7 @@ export const Sustain: React.FC = () => {
           })}
           <PriceTag x={1450} y={250} text={`$${Math.round(spent).toLocaleString("en-US")}`} size={52} color={C.red} s={prog(t, T.relying, T.relying + 0.4, "back.out(2)")} />
           {stamp > 0 && (
-            <g transform={`translate(960 640) rotate(-8) scale(${stamp})`}>
+            <g transform={`translate(960 640) rotate(-8) scale(${stamp})`} opacity={1 - prog(t, T.stops - 0.6, T.stops - 0.1)}>
               <rect x={-330} y={-58} width={660} height={116} rx={12} fill="none" stroke={C.red} strokeWidth={10} />
               <Big x={0} y={26} text="UNSUSTAINABLE" size={78} color={C.red} />
             </g>
