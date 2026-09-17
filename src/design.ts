@@ -1,13 +1,35 @@
-import { loadFont as anton } from "@remotion/google-fonts/Anton";
-import { loadFont as oswald } from "@remotion/google-fonts/Oswald";
-import { loadFont as fira } from "@remotion/google-fonts/FiraSansCondensed";
-import { loadFont as bebas } from "@remotion/google-fonts/BebasNeue";
+import { continueRender, delayRender, staticFile } from "remotion";
+
+/**
+ * The four faces are served from public/fonts: a render must never depend on
+ * fonts.gstatic.com answering — one timeout there used to kill a whole render.
+ */
+const FACES = [
+  { family: "Anton", file: "anton-400.woff2", weight: "400" },
+  { family: "Oswald", file: "oswald-var.woff2", weight: "200 700" },
+  { family: "Fira Sans Condensed", file: "fira-500.woff2", weight: "500" },
+  { family: "Fira Sans Condensed", file: "fira-600.woff2", weight: "600" },
+  { family: "Fira Sans Condensed", file: "fira-700.woff2", weight: "700" },
+  { family: "Bebas Neue", file: "bebas-400.woff2", weight: "400" },
+];
+
+if (typeof document !== "undefined") {
+  const handle = delayRender("loading the local fonts");
+  Promise.all(
+    FACES.map(async (f) => {
+      const src = `url(${staticFile(`fonts/${f.file}`)}) format("woff2")`;
+      document.fonts.add(await new FontFace(f.family, src, { weight: f.weight }).load());
+    }),
+  )
+    .then(() => continueRender(handle))
+    .catch(() => continueRender(handle));
+}
 
 export const F = {
-  anton: anton("normal", { weights: ["400"], subsets: ["latin"] }).fontFamily,
-  oswald: oswald("normal", { weights: ["500", "600", "700"], subsets: ["latin"] }).fontFamily,
-  fira: fira("normal", { weights: ["500", "600", "700"], subsets: ["latin"] }).fontFamily,
-  bebas: bebas("normal", { weights: ["400"], subsets: ["latin"] }).fontFamily,
+  anton: "Anton",
+  oswald: "Oswald",
+  fira: "Fira Sans Condensed",
+  bebas: "Bebas Neue",
 };
 
 /** Tactical-dossier palette. Every element carries its own fill: the stage background is transparent. */
