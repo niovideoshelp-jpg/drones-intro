@@ -5,7 +5,7 @@ on:
     inputs:
       part:
         type: choice
-        options: [intro, part1]
+        options: [intro, part1, part2, part3]
         default: intro
       mode:
         type: choice
@@ -23,6 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.t.outputs.tag }}
+      chunks: ${{ steps.t.outputs.chunks }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -47,6 +48,7 @@ jobs:
           gh release delete "$TAG" -y --cleanup-tag || true
           gh release create "$TAG" --prerelease --title "$NAME ${{ inputs.tag }} (${{ inputs.mode }})" --notes "Building…" --target "${{ github.sha }}"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "chunks=[$(seq 0 $((CHUNKS - 1)) | paste -sd, -)]" >> "$GITHUB_OUTPUT"
 
   render:
     needs: prepare
@@ -54,7 +56,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        part: [0, 1, 2, 3, 4, 5]
+        part: ${{ fromJSON(needs.prepare.outputs.chunks) }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -67,7 +69,7 @@ jobs:
       - run: node scripts/sfx-prep.mjs && node "$MIX"
       - name: Render part
         run: |
-          STEP=$(( (FRAMES + 5) / 6 ))
+          STEP=$(( (FRAMES + CHUNKS - 1) / CHUNKS ))
           START=$(( ${{ matrix.part }} * STEP ))
           END=$(( START + STEP - 1 ))
           if [ "$END" -ge "$FRAMES" ]; then END=$(( FRAMES - 1 )); fi
@@ -108,14 +110,14 @@ jobs:
       - name: Review MP4
         if: inputs.mode == 'review'
         run: |
-          for i in 1 2 3 4 5 6; do echo "file 'parts/review-part$i.mp4'"; done > list.txt
+          for i in $(seq 1 $CHUNKS); do echo "file 'parts/review-part$i.mp4'"; done > list.txt
           ffmpeg -y -f concat -safe 0 -i list.txt -c copy picture.mp4
           ffmpeg -y -i picture.mp4 -i "public/audio/${PREFIX}mix.wav" -map 0:v -map 1:a -c:v copy -c:a aac -b:a 192k -shortest -movflags +faststart "dist/${NAME}-review.mp4"
-          for i in 1 2 3 4 5 6; do gh release delete-asset "${{ needs.prepare.outputs.tag }}" "review-part$i.mp4" -y; done
+          for i in $(seq 1 $CHUNKS); do gh release delete-asset "${{ needs.prepare.outputs.tag }}" "review-part$i.mp4" -y; done
       - name: Final extras (verification, stems, quick-look)
         if: inputs.mode == 'final'
         run: |
-          for i in 1 2 3 4 5 6; do echo "file 'parts/webm-part$i.webm'"; done > list.txt
+          for i in $(seq 1 $CHUNKS); do echo "file 'parts/webm-part$i.webm'"; done > list.txt
           ffmpeg -y -f concat -safe 0 -i list.txt -c copy picture.webm
           ffmpeg -y -i picture.webm -i "public/audio/${PREFIX}mix.wav" -map 0:v -map 1:a -c:v copy -c:a libopus -b:a 192k -shortest "dist/${NAME}_alpha.webm"
           {
@@ -125,7 +127,7 @@ jobs:
           grep -q "YMIN=0" dist/VERIFY.txt || (echo "alpha plane missing" && exit 1)
           (cd public/audio && zip -9 "../../dist/${NAME}_audio_stems.zip" "${PREFIX}mix.wav" "${PREFIX}voice.wav" "${PREFIX}music.wav" "${PREFIX}sfx.wav")
           ffmpeg -y -c:v libvpx-vp9 -i "dist/${NAME}_alpha.webm" -filter_complex "color=c=0x3b4447:s=1920x1080:r=30[bg];[bg][0:v]overlay=shortest=1,scale=1280:720,format=yuv420p[v]" -map "[v]" -map 0:a -c:v libx264 -crf 24 -preset veryfast -c:a aac -b:a 192k -movflags +faststart "dist/${NAME}_quicklook.mp4"
-          for i in 1 2 3 4 5 6; do gh release delete-asset "${{ needs.prepare.outputs.tag }}" "webm-part$i.webm" -y; done
+          for i in $(seq 1 $CHUNKS); do gh release delete-asset "${{ needs.prepare.outputs.tag }}" "webm-part$i.webm" -y; done
       - name: Publish
         run: |
           gh release upload "${{ needs.prepare.outputs.tag }}" dist/* --clobber
