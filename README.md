@@ -1,6 +1,13 @@
-# Drones e defesa aérea — intro (motion graphic)
+# Drones e defesa aérea — motion graphic (Remotion + GSAP)
 
-Remotion + GSAP. 1920×1080, 30 fps, 5322 quadros (177,4 s). Fundo **transparente** para montagem no Filmora.
+1920×1080, 30 fps, fundo **transparente** para montagem no Filmora.
+
+| Parte | Composição | Duração | Narração | Trilha/SFX |
+| --- | --- | --- | --- | --- |
+| Intro | `DronesIntro` | 177,4 s (5322 q.) | `public/audio/intro.mp3` | `scripts/mix.mjs` → `public/audio/mix.wav` |
+| 2. The New Math of Air Warfare | `Part1` | 168,8 s (5064 q.) | `public/audio/part1.mp3` | `scripts/mix-p1.mjs` → `public/audio/p1-mix.wav` |
+
+Renderizar: workflow `render.yml` (Actions) com `part=intro|part1` e `mode=review|final`.
 
 ## Entregas (GitHub Release gerada pelo workflow `render.yml`, modo `final`)
 - `DronesIntro_alpha_part1..6.mov` — ProRes 4444 com canal alfa e áudio mixado (PCM). Importar no Filmora e colocar em sequência (1→6); os cortes são contínuos quadro a quadro.
