@@ -54,7 +54,7 @@ export const Layer5: React.FC = () => {
   const t = useTime();
   if (t < LAYER5_RANGE[0] || t > LAYER5_RANGE[1]) return null;
 
-  const laserA = win(t, T.and - 0.2, T.microwaves - 0.4, 0.4, 0.5);
+  const laserA = win(t, T.and - 0.2, T.israel - 0.5, 0.4, 0.4);
   const turretIn = ease("back.out(1.4)")(clamp01((t - T.and) / 0.8));
   const beam = win(t, T.lasers - 0.2, T.shot2 + 0.6, 0.3, 0.5);
   const costP = prog(t, T.shot - 0.2, T.costs + 0.3, "power2.inOut");

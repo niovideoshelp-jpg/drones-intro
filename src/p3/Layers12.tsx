@@ -215,7 +215,7 @@ export const Layers12: React.FC = () => {
           <Tag x={960} y={170} text="WHERE JAMMING STOPS WORKING" p={prog(t, T.limits - 0.2, T.limits + 0.6, "none")} size={38} accent={C.red} />
           {/* autonomous navigation */}
           {(() => {
-            const p = ease("back.out(1.5)")(clamp01((t - T.autonomously + 0.3) / 0.6));
+            const p = ease("back.out(1.5)")(clamp01((t - T.limits + 0.2) / 0.7));
             if (p <= 0) return null;
             return (
               <g opacity={p * (1 - prog(t, T.fiber - 0.5, T.fiber))}>

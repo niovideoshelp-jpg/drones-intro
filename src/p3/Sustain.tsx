@@ -180,7 +180,7 @@ export const Sustain: React.FC = () => {
             const k = (((t - T.relying) * 0.16 + i / 10) % 1 + 1) % 1;
             return <ShahedTop key={i} x={1900 - k * 900} y={330 + ((i * 53) % 4) * 140 + rnd(i, 2) * 30} r={-90} s={0.17} opacity={drainA} />;
           })}
-          <PriceTag x={1180} y={860} text={`$${Math.round(spent).toLocaleString("en-US")}`} size={52} color={C.red} s={prog(t, T.relying, T.relying + 0.4, "back.out(2)")} />
+          <PriceTag x={1450} y={250} text={`$${Math.round(spent).toLocaleString("en-US")}`} size={52} color={C.red} s={prog(t, T.relying, T.relying + 0.4, "back.out(2)")} />
           {stamp > 0 && (
             <g transform={`translate(960 640) rotate(-8) scale(${stamp})`}>
               <rect x={-330} y={-58} width={660} height={116} rx={12} fill="none" stroke={C.red} strokeWidth={10} />

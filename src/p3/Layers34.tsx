@@ -189,7 +189,7 @@ export const Layers34: React.FC = () => {
           <Tag x={430} y={260} text="UKRAINE" p={prog(t, T.ukraine - 0.1, T.economics + 0.4, "none")} size={32} accent={C.blue} />
           {/* the chase */}
           {/* the raid that pays for all this, running behind the chase */}
-          <g opacity={0.8 * (1 - prog(t, T.brings - 0.6, T.brings))}>
+          <g opacity={0.55 + 0.25 * (1 - prog(t, T.brings - 0.6, T.brings))}>
             {[0, 1, 2, 3].map((i) => {
               const k = (((t - T.another) * 0.09 + i * 0.25) % 1 + 1) % 1;
               return <ShahedTop key={i} x={1980 - k * 2100} y={720 + (i % 2) * 120} r={-90} s={0.18} opacity={0.85} />;

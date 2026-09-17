@@ -205,7 +205,7 @@ export const Choose: React.FC = () => {
             <g transform={`translate(1420 640) scale(${0.7 * prog(t, T.check - 0.3, T.check + 0.3, "back.out(2)")})`}>
               <Magnifier />
             </g>
-            <Tag x={960} y={860} text="SOURCES IN THE DESCRIPTION" p={prog(t, T.description - 0.1, T.description + 0.6, "none")} size={38} accent={C.amber} />
+            <Tag x={960} y={860} text="SOURCES IN THE DESCRIPTION" p={prog(t, T.sources - 0.2, T.description + 0.4, "none")} size={38} accent={C.amber} />
             <Pulse x={960} y={440} p={prog(t, T.yourself, T.yourself + 1, "none")} r={520} color={C.amber} width={8} />
           </g>
         )}
