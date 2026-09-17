@@ -5,6 +5,7 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 
 const DUR = 177.4;
+fs.mkdirSync("out", { recursive: true });
 const words = JSON.parse(fs.readFileSync("src/data/words.json", "utf8"));
 const meta = JSON.parse(fs.readFileSync("src/data/sfx-meta.json", "utf8"));
 const norm = (s) => s.toLowerCase().replace(/[^a-z0-9$]/g, "");
