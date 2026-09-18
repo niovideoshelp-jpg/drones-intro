@@ -7,9 +7,23 @@ DEST="${2:-}"
 eval "$(bash scripts/part-env.sh "$PART" | sed 's/^/export /')"
 mkdir -p out dist
 
-echo "== rendering $COMP ($FRAMES frames)"
-npx remotion render src/index.ts "$COMP" "out/${NAME}_picture.webm" \
-  --codec=vp9 --pixel-format=yuva420p --crf=28 --image-format=png --muted --concurrency="$(nproc)"
+# Rendered in chunks with a .done marker each, so an interrupted run resumes where it stopped
+# instead of losing an hour and a half of frames. FRESH=1 discards the chunks of a previous run.
+CH="${LOCAL_CHUNKS:-4}"
+STEP=$(( (FRAMES + CH - 1) / CH ))
+[ "${FRESH:-0}" = 1 ] && rm -f out/"${NAME}"_chunk*
+: > "out/${NAME}_chunks.txt"
+for i in $(seq 0 $((CH - 1))); do
+  S=$(( i * STEP )); E=$(( S + STEP - 1 )); [ "$E" -ge "$FRAMES" ] && E=$(( FRAMES - 1 ))
+  f="out/${NAME}_chunk$i.webm"
+  echo "file '${NAME}_chunk$i.webm'" >> "out/${NAME}_chunks.txt"
+  if [ -f "$f.done" ]; then echo "== chunk $i ($S-$E) already rendered"; continue; fi
+  echo "== rendering $COMP chunk $i: frames $S-$E"
+  npx remotion render src/index.ts "$COMP" "$f" --frames="$S-$E" \
+    --codec=vp9 --pixel-format=yuva420p --crf=28 --image-format=png --muted --concurrency="$(nproc)"
+  touch "$f.done"
+done
+ffmpeg -y -v error -f concat -safe 0 -i "out/${NAME}_chunks.txt" -c copy "out/${NAME}_picture.webm"
 
 echo "== muxing the mix"
 ffmpeg -y -v error -i "out/${NAME}_picture.webm" -i "public/audio/${PREFIX}mix.wav" \
