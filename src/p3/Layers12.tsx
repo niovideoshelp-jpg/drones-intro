@@ -219,7 +219,13 @@ export const Layers12: React.FC = () => {
             if (p <= 0) return null;
             return (
               <g opacity={p * (1 - prog(t, T.fiber - 0.5, T.fiber))}>
-                <g transform={`translate(520 520) scale(${p})`}>
+                {/* jamming keeps arriving and the autonomous drone keeps flying through it */}
+                {[0, 1, 2].map((k) => {
+                  const q = (((t - T.limits) * 0.55 + k / 3) % 1 + 1) % 1;
+                  return <path key={k} d={`M${140 + q * 200},${520 - 150 - q * 40} a${50 + q * 60},${150 + q * 40} 0 0 1 0,${300 + q * 80}`} fill="none" stroke={C.blue} strokeWidth={6} opacity={p * (1 - q) * 0.8} />;
+                })}
+                <circle cx={520} cy={520} r={184} fill="none" stroke={C.amber} strokeWidth={3} strokeDasharray="12 16" opacity={0.5 * p} transform={`rotate(${t * 26} 520 520)`} />
+                <g transform={`translate(520 ${520 + Math.sin(t * 2.2) * 8}) scale(${p})`}>
                   <circle r={150} fill={C.ink} fillOpacity={0.9} stroke={C.amber} strokeWidth={6} />
                   <ShahedTop s={0.42} r={-90} />
                   <g transform="translate(-70 -90)">

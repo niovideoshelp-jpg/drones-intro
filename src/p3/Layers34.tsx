@@ -101,9 +101,9 @@ export const Layers34: React.FC = () => {
     <Stage>
       {gunA > 0 && (
         <g opacity={gunA}>
-          <Tag x={960} y={160} text="LOWER-COST GUNS & ROCKETS" p={prog(t, T.guns - 0.2, T.rockets + 0.4, "none")} size={38} accent={C.green} />
+          <Tag x={960} y={160} text="LOWER-COST GUNS & ROCKETS" p={prog(t, T.when, T.rockets + 0.4, "none")} size={38} accent={C.green} />
           {GUNS.map((g, i) => {
-            const p = ease("back.out(1.4)")(clamp01((t - g.t + 0.35) / 0.55));
+            const p = ease("back.out(1.4)")(clamp01((t - (T.enough - 0.1 + i * 0.45)) / 0.6));
             if (p <= 0) return null;
             return (
               <g key={g.label} opacity={p}>
