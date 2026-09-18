@@ -98,6 +98,34 @@ export const Mixed: React.FC = () => {
             );
           })()}
 
+          {/* the radar keeps sweeping while the raid is still being described */}
+          {(() => {
+            const R = 1180 * prog(t, T.and, T.and + 0.8, "power2.out");
+            const k = ((t - T.and) * 0.32) % 1;
+            const ang = Math.PI * (0.62 + 0.4 * (k < 0.5 ? k * 2 : 2 - k * 2));
+            return (
+              <g opacity={1 - prog(t, T.routes - 0.4, T.routes + 0.2)}>
+                <path d={`M${DEF_X},${GROUND - 60} L${DEF_X + Math.cos(ang) * R},${GROUND - 60 + Math.sin(ang) * R}`} stroke={C.cyan} strokeWidth={5} opacity={0.5} />
+                <Pulse x={DEF_X} y={GROUND - 60} p={((t * 0.45) % 1 + 1) % 1} r={1000} color={C.cyan} width={5} />
+              </g>
+            );
+          })()}
+          <Tag x={860} y={150} text="WHEN THE ATTACK IS MIXED" p={prog(t, T.and, T.one + 0.4, "none")} size={40} accent={C.amber} />
+          {/* who has learned to combine them */}
+          {[
+            { t0: T.russia, label: "RUSSIA", x: 480 },
+            { t0: T.iran, label: "IRAN", x: 860 },
+            { t0: T.operators, label: "OTHER OPERATORS", x: 1300 },
+          ].map((o) => {
+            const p = ease("back.out(1.6)")(clamp01((t - o.t0 + 0.3) / 0.5)) * (1 - prog(t, T.drones - 0.6, T.drones - 0.1));
+            if (p <= 0) return null;
+            return (
+              <g key={o.label} opacity={p}>
+                <rect x={o.x - 190 * p} y={286} width={380 * p} height={78} rx={12} fill={C.ink} fillOpacity={0.9} stroke={C.amber} strokeWidth={4} />
+                <Tag x={o.x} y={325} text={o.label} p={prog(t, o.t0, o.t0 + 0.4, "none")} size={30} accent={C.amber} />
+              </g>
+            );
+          })}
           {TRACKS.map((tr, i) => {
             const appear = prog(t, tr.t - 0.4, tr.t + 0.2, "power2.out");
             if (appear <= 0) return null;

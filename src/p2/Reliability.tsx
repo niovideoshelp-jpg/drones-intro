@@ -76,6 +76,11 @@ export const Reliability: React.FC = () => {
       {missA > 0 && (
         <g opacity={missA}>
           <Tag x={960} y={180} text="RELIABILITY" p={prog(t, T.reliability - 0.2, T.reliability + 0.5, "none")} size={44} accent={C.cyan} />
+          {/* the shot is never a still frame: the tracking ring keeps turning */}
+          <g opacity={0.5}>
+            <circle cx={MX} cy={MY} r={250} fill="none" stroke={C.cyan} strokeWidth={3} strokeDasharray="14 18" transform={`rotate(${t * 24} ${MX} ${MY})`} />
+            <Pulse x={MX} y={MY} p={((t * 0.45) % 1 + 1) % 1} r={430} color={C.cyan} width={4} />
+          </g>
           <g transform={`translate(${MX} ${MY + Math.sin(t * 1.4) * 6}) scale(${1.5 * missIn})`}>
             <Interceptor kind="pac3" flame={0.5} />
           </g>

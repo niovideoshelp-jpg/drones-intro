@@ -106,6 +106,8 @@ export const Cities: React.FC = () => {
             return (
               <g key={c.key} opacity={p}>
                 <rect x={c.x - 380} y={200} width={760} height={700} rx={24} fill={C.ink} fillOpacity={0.55} stroke={c.color} strokeWidth={5} />
+                <rect x={c.x - 380} y={200} width={760} height={700} rx={24} fill="none" stroke={c.color} strokeWidth={4} strokeDasharray="22 18" strokeDashoffset={-t * 34} opacity={0.6} />
+                <Pulse x={c.x} y={640} p={((t * 0.4 + (c.key === "urban" ? 0.5 : 0)) % 1 + 1) % 1} r={420} color={c.color} width={4} />
                 <g transform={`translate(${c.x} ${640}) scale(${c.key === "urban" ? 0.78 : 0.8})`}>
                   {c.key === "urban" ? (
                     <CityBlock />
