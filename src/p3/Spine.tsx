@@ -1,6 +1,5 @@
 import React from "react";
-import { C } from "../design";
-import { LayerChip } from "../art/p3art";
+import { C, F } from "../design";
 import { clamp01, ease, prog, useTime } from "../lib/kf";
 import { at } from "./words";
 
@@ -14,42 +13,46 @@ export const LAYERS = [
   { key: "missiles", label: "EXPENSIVE MISSILES", t: at("missiles", 244.5), color: C.red, from: at("Which", 241.5) - 0.2, to: 999 },
 ];
 
-const RAIL_Y = 985;
+/** Bottom of the frame kept for the rail: scenes stay above this line. */
+export const RAIL_TOP = 986;
+const RAIL_Y = 1018;
+const H = 52;
+const SMALL = 64;
+const WIDE = 400;
+const GAP = 12;
 
+/**
+ * A compact rail of numbered chips. The active chip widens and carries its own name, so no loose caption line
+ * sits between the scene and the rail.
+ */
 export const Spine: React.FC<{ show: number }> = ({ show }) => {
   const t = useTime();
   if (show <= 0.01) return null;
-  const n = LAYERS.length;
-  const w = 300;
-  const gap = 12;
-  const total = n * w + (n - 1) * gap;
-  const x0 = 960 - total / 2 + w / 2;
+  const chips = LAYERS.map((l) => {
+    const p = ease("back.out(1.4)")(clamp01((t - l.t + 0.35) / 0.6));
+    const active = prog(t, l.from, l.from + 0.5) * (1 - prog(t, l.to - 0.4, l.to));
+    return { ...l, p, active, w: p > 0 ? SMALL + (WIDE - SMALL) * active : 0 };
+  }).filter((c) => c.p > 0);
+  const total = chips.reduce((s, c) => s + c.w, 0) + GAP * Math.max(0, chips.length - 1);
+  let x = 960 - total / 2;
   return (
     <g opacity={show}>
-      {LAYERS.map((l, i) => {
-        const p = ease("back.out(1.4)")(clamp01((t - l.t + 0.35) / 0.6));
-        if (p <= 0) return null;
-        const active = prog(t, l.from, l.from + 0.5) * (1 - prog(t, l.to - 0.4, l.to));
-        return <LayerChip key={l.key} x={x0 + i * (w + gap)} y={RAIL_Y} w={w} label={String(i + 1)} index={i + 1} active={active} color={l.color} p={p} />;
-      })}
-      {LAYERS.map((l, i) => {
-        const active = prog(t, l.from, l.from + 0.5) * (1 - prog(t, l.to - 0.4, l.to));
-        if (active < 0.05) return null;
+      {chips.map((c, i) => {
+        const x0 = x;
+        x += c.w + GAP;
         return (
-          <text
-            key={`t${l.key}`}
-            x={960}
-            y={RAIL_Y - 78}
-            textAnchor="middle"
-            fontFamily="inherit"
-            style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 600 }}
-            fontSize={34}
-            fill={l.color}
-            opacity={active}
-            letterSpacing={2}
-          >
-            {`LAYER ${i + 1} — ${l.label}`}
-          </text>
+          <g key={c.key} transform={`translate(${x0} ${RAIL_Y - H / 2})`} opacity={c.p}>
+            <rect width={c.w} height={H} rx={10} fill={C.ink} fillOpacity={0.9} stroke={c.color} strokeWidth={3 + 3 * c.active} />
+            <rect width={SMALL} height={H} rx={10} fill={c.color} opacity={0.18 + 0.7 * c.active} />
+            <text x={SMALL / 2} y={H / 2 + 13} textAnchor="middle" fontFamily={F.anton} fontSize={36} fill={c.active > 0.5 ? C.ink : c.color}>
+              {i + 1}
+            </text>
+            {c.active > 0.35 && (
+              <text x={SMALL + 18} y={H / 2 + 10} fontFamily={F.oswald} fontWeight={600} fontSize={27} letterSpacing={1.5} fill={C.cream} opacity={clamp01((c.active - 0.35) / 0.4)}>
+                {c.label}
+              </text>
+            )}
+          </g>
         );
       })}
     </g>

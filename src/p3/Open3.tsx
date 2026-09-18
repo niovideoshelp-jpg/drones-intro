@@ -1,10 +1,12 @@
 import React from "react";
 import { C, F } from "../design";
 import { NoSign } from "../p2/shared";
-import { LaserTurret } from "../art/p3art";
-import { PriceTag, Pulse, Tag } from "../art/ui";
+import { aimTurret, LaserTurret } from "../art/p3art";
+import { ShahedTop } from "../art/drones";
+import { Lens } from "../art/lens";
+import { PriceTag, Tag } from "../art/ui";
 import { Stage } from "../Stage";
-import { clamp01, ease, prog, useTime, win } from "../lib/kf";
+import { board, clamp01, ease, prog, useTime } from "../lib/kf";
 import { at } from "./words";
 
 const T = {
@@ -38,14 +40,18 @@ export const Open3: React.FC = () => {
   const t = useTime();
   if (t > OPEN3_RANGE[1]) return null;
 
-  const titleA = win(t, 0, T.combining - 0.1, 0.4, 0.5);
+  /* the question, the "no", and the layered answer each own the screen in turn */
+  const titleB = board(t, 0, T.no + 0.1, { inDur: 0.01 });
+  const titleA = titleB.op;
   const titleIn = ease("back.out(1.6)")(clamp01((t - 0.05) / 0.7));
-  const curve = prog(t, 0.4, T.unsustainable + 0.8, "power2.inOut");
-  const noneA = win(t, T.no - 0.2, T.combining - 0.2, 0.4, 0.4);
-  const noneP = ease("back.out(1.5)")(clamp01((t - T.no) / 0.6));
+  const curve = prog(t, 0.2, T.no, "power2.inOut");
+  const noneB = board(t, T.no - 0.2, T.combining - 0.1, { hits: [T.own + 0.1] });
+  const noneA = noneB.op;
+  const noneP = ease("back.out(1.5)")(clamp01((t - T.no + 0.1) / 0.6));
   const cross = prog(t, T.technology, T.own + 0.2, "none");
 
-  const ringsA = win(t, T.combining - 0.3, T.first + 0.4, 0.5, 0.5);
+  const ringsB = board(t, T.combining - 0.3, T.first + 0.4);
+  const ringsA = ringsB.op;
   const cheap = prog(t, T.cheapest - 0.2, T.success + 0.3, "power2.inOut");
   const CX = 960;
   const CY = 560;
@@ -53,7 +59,7 @@ export const Open3: React.FC = () => {
   return (
     <Stage>
       {titleA > 0 && (
-        <g opacity={titleA}>
+        <g opacity={titleA} transform={titleB.tf}>
           {/* a cost curve that will not stop rising */}
           <g opacity={0.9}>
             <path d="M300,820 L1620,820" stroke={C.cream} strokeWidth={6} strokeLinecap="round" />
@@ -84,21 +90,22 @@ export const Open3: React.FC = () => {
       )}
 
       {noneA > 0 && (
-        <g opacity={noneA}>
-          <g transform={`translate(960 640) scale(${0.95 * noneP})`}>
-            <circle r={230} fill={C.ink} fillOpacity={0.9} stroke={C.cream} strokeWidth={6} />
-            <circle r={262} fill="none" stroke={C.cream} strokeWidth={3} strokeDasharray="14 18" opacity={0.45} transform={`rotate(${t * 30})`} />
-            <g transform="translate(0 90) scale(0.85)">
-              <LaserTurret beam={0} angle={-30} />
-            </g>
-          </g>
-          <NoSign x={960} y={640} p={cross} r={240} />
-          <Tag x={960} y={950} text="NO SINGLE TECHNOLOGY" p={prog(t, T.single, T.own + 0.2, "none")} size={40} accent={C.red} />
+        <g opacity={noneA} transform={noneB.tf}>
+          {/* one system alone, in its own landscape, and why it is not enough */}
+          <Lens id="none" x={960} y={520} r={230} t={t} s={noneP} ring={C.cream} sky="dusk">
+            <LaserTurret x={-60} y={97} s={0.8} beam={cross < 0.6 ? 1 : 0} {...aimTurret(120, -120, -60, 97, 0.8)} />
+            <ShahedTop x={120 + Math.sin(t * 2) * 10} y={-120} r={-90} s={0.2} />
+            {[0, 1].map((k) => (
+              <ShahedTop key={k} x={-40 + ((((t * 0.5 + k * 0.5) % 1) + 1) % 1) * 300} y={-40 - k * 100} r={90} s={0.14} opacity={0.8} />
+            ))}
+          </Lens>
+          <NoSign x={960} y={520} p={cross} r={250} />
+          <Tag x={960} y={860} text="NO SINGLE TECHNOLOGY" p={prog(t, T.single, T.own + 0.2, "none")} size={40} accent={C.red} />
         </g>
       )}
 
       {ringsA > 0 && (
-        <g opacity={ringsA}>
+        <g opacity={ringsA} transform={ringsB.tf}>
           {RINGS.map((r, i) => {
             const p = prog(t, r.t, r.t + 0.6, "power2.out");
             if (p <= 0) return null;
@@ -131,8 +138,13 @@ export const Open3: React.FC = () => {
           {cheap > 0 && (
             <g>
               <PriceTag x={CX - 700 + cheap * 420} y={CY - 160} text="$" size={54} color={C.green} s={clamp01(cheap * 3)} />
-              <Pulse x={CX} y={CY + 40} p={prog(t, T.success, T.success + 1, "none")} r={680} color={C.green} width={8} />
-              <Tag x={CX} y={200} text="CHEAPEST OPTION THAT STILL WORKS" p={prog(t, T.cheapest, T.option + 0.6, "none")} size={38} accent={C.green} />
+              {(() => {
+                const q = prog(t, T.success, T.success + 1, "none");
+                if (q <= 0 || q >= 1) return null;
+                const r = 60 + q * 640;
+                return <path d={`M${CX - r},${CY + 40} A${r},${r * 0.72} 0 0 1 ${CX + r},${CY + 40}`} fill="none" stroke={C.green} strokeWidth={8} opacity={1 - q} />;
+              })()}
+              <Tag x={CX} y={110} text="CHEAPEST OPTION THAT STILL WORKS" p={prog(t, T.cheapest, T.option + 0.6, "none")} size={38} accent={C.green} />
             </g>
           )}
         </g>

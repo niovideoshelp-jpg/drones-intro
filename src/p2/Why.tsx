@@ -7,7 +7,7 @@ import { Big, Interceptor } from "../art/p1art";
 import { CityBlock, Warship } from "../art/p2art";
 import { Explosion, PriceTag, Pulse, Query, Tag } from "../art/ui";
 import { Stage } from "../Stage";
-import { clamp01, ease, prog, useTime, win } from "../lib/kf";
+import { board, clamp01, ease, lerp, prog, useTime } from "../lib/kf";
 import { at } from "./words";
 
 const T = {
@@ -67,16 +67,20 @@ export const Why: React.FC = () => {
   if (t > WHY_RANGE[1]) return null;
 
   /* ---- the question ---- */
-  const qA = win(t, 0, T.defense + 0.3, 0.5, 0.5);
+  const qB = board(t, 0, T.defense + 0.2, { inDur: 0.01 });
   const qIn = ease("back.out(1.5)")(clamp01((t - 0.1) / 0.8));
   const qMark = ease("back.out(2.5)")(clamp01((t - T.missileQ + 0.2) / 0.5));
   const answer = prog(t, T.first - 0.1, T.simple + 0.2, "power2.out");
 
   /* ---- it is not about the drone ---- */
-  const bA = win(t, T.defense - 0.2, T.rational + 0.7, 0.4, 0.5);
+  const bB = board(t, T.defense - 0.2, T.rational + 0.7, { hits: [T.missile2 + 0.45] });
   const droneDim = prog(t, T.drone - 0.1, T.drone + 0.6);
   const spotlight = prog(t, T.its - 0.2, T.behind + 0.3, "power2.inOut");
-  const droneX = 150 + prog(t, T.defense, T.million, "none") * 620;
+  /* the drone first fills the frame ("isn't the drone"), then steps aside for what it threatens */
+  const aside = prog(t, T.its - 0.2, T.behind + 0.3, "power2.inOut");
+  const droneX = lerp(960, 150 + prog(t, T.behind, T.million, "none") * 620, aside);
+  const droneY = lerp(420, 300, aside);
+  const droneS = lerp(0.62, 0.34, aside);
 
   /* ---- fire ---- */
   const fire = prog(t, T.firing, T.missile2 + 0.4, "power1.in");
@@ -84,15 +88,15 @@ export const Why: React.FC = () => {
   const rational = prog(t, T.rational - 0.1, T.rational + 0.5, "back.out(2)");
 
   /* ---- the multiplier ---- */
-  const vA = win(t, T.value - 0.3, T.theres + 0.5, 0.4, 0.5);
+  const vB = board(t, T.value - 0.3, T.theres + 0.15);
   const mult = t < T.dozens ? 0 : t < T.hundreds ? 1 : 2;
   const multP = prog(t, T.dozens - 0.1, T.higher + 0.2, "power2.out");
   const multText = mult === 0 ? "" : mult === 1 ? "×DOZENS" : "×HUNDREDS";
 
   return (
     <Stage>
-      {qA > 0 && (
-        <g opacity={qA}>
+      {qB.op > 0 && (
+        <g opacity={qB.op} transform={qB.tf}>
           <g transform={`translate(760 ${430 + Math.sin(t * 1.6) * 8}) scale(${1.3 * qIn})`}>
             <Interceptor kind="pac3" flame={0.6} />
           </g>
@@ -100,19 +104,19 @@ export const Why: React.FC = () => {
           {qMark > 0 && <Query x={960} y={660} s={2.6 * qMark} color={C.amber} />}
           {answer > 0 && (
             <g opacity={answer}>
-              <Tag x={960} y={880} text="ANSWER 1" p={answer} size={40} accent={C.cyan} />
+              <Tag x={960} y={880} text="THE FIRST ANSWER" p={answer} size={40} accent={C.cyan} />
             </g>
           )}
         </g>
       )}
 
-      {bA > 0 && (
-        <g opacity={bA}>
+      {bB.op > 0 && (
+        <g opacity={bB.op} transform={bB.tf}>
           {/* the drone: not the thing being protected */}
           <g opacity={1 - 0.55 * droneDim}>
-            <ShahedTop x={droneX} y={300} r={90} s={0.34} />
-            <path d={`M60,300 L${droneX - 60},300`} stroke={C.red} strokeWidth={4} strokeDasharray="12 9" opacity={0.7} />
-            <PriceTag x={droneX - 120} y={210} text="$30,000" size={44} color={C.cream} s={prog(t, T.d30 - 0.1, T.d30 + 0.3, "back.out(2)")} />
+            <ShahedTop x={droneX} y={droneY + Math.sin(t * 2) * 8} r={90} s={droneS} />
+            <path d={`M60,${droneY} L${droneX - 160 * droneS},${droneY}`} stroke={C.red} strokeWidth={4} strokeDasharray="12 9" strokeDashoffset={-t * 30} opacity={0.7 * aside} />
+            <PriceTag x={droneX - 120} y={droneY - 90} text="$30,000" size={44} color={C.cream} s={prog(t, T.d30 - 0.1, T.d30 + 0.3, "back.out(2)")} />
           </g>
 
           {/* what is behind it */}
@@ -155,11 +159,11 @@ export const Why: React.FC = () => {
 
           {/* the shot */}
           {fire > 0 && hit <= 0 && (
-            <g transform={`translate(${760 + (droneX - 760) * fire} ${640 - 330 * fire}) rotate(${-60 + fire * 20}) scale(0.5)`}>
+            <g transform={`translate(${760 + (droneX - 760) * fire} ${640 - (640 - droneY) * fire}) rotate(${-60 + fire * 20}) scale(0.5)`}>
               <Interceptor kind="pac3" flame={1} />
             </g>
           )}
-          {hit > 0 && hit < 1 && <Explosion x={droneX} y={300} p={hit} size={110} seed={7} />}
+          {hit > 0 && hit < 1 && <Explosion x={droneX} y={droneY} p={hit} size={130} seed={7} />}
           {rational > 0 && (
             <g transform={`translate(1500 300) scale(${rational})`}>
               <circle r={62} fill={C.green} stroke={C.ink} strokeWidth={6} />
@@ -169,21 +173,21 @@ export const Why: React.FC = () => {
         </g>
       )}
 
-      {vA > 0 && (
-        <g opacity={vA}>
+      {vB.op > 0 && (
+        <g opacity={vB.op} transform={vB.tf}>
           {VALUES.map((v, i) => {
             const p = ease("back.out(1.6)")(clamp01((t - v.t + 0.25) / 0.5));
             if (p <= 0) return null;
             const y = 330 + i * 150;
             return (
               <g key={v.label} opacity={p}>
-                <rect x={330} y={y - 44} width={760 * p} height={88} rx={10} fill={C.ink} fillOpacity={0.9} stroke={C.cyan} strokeWidth={4} />
-                <Tag x={420} y={y} text={v.label} p={p} size={34} accent={C.cyan} anchor="start" />
+                <rect x={270} y={y - 44} width={760 * p} height={88} rx={10} fill={C.ink} fillOpacity={0.9} stroke={C.cyan} strokeWidth={4} />
+                <Tag x={360} y={y} text={v.label} p={p} size={34} accent={C.cyan} anchor="start" />
               </g>
             );
           })}
           {multP > 0 && (
-            <g transform={`translate(1450 ${480}) scale(${0.9 + 0.35 * multP})`}>
+            <g transform={`translate(1400 ${480}) scale(${0.9 + 0.35 * multP})`}>
               <Big x={0} y={40} text={multText} size={92} color={C.red} />
               <Pulse x={0} y={0} p={prog(t, T.hundreds, T.hundreds + 1, "none")} r={420} color={C.red} width={10} />
             </g>

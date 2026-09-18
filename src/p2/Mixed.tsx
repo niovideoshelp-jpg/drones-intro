@@ -6,7 +6,7 @@ import { RadarScope } from "../art/radar";
 import { RadarAESA } from "../art/targets";
 import { Query, Pulse, Tag } from "../art/ui";
 import { Stage } from "../Stage";
-import { clamp01, ease, prog, rnd, useTime, win } from "../lib/kf";
+import { board, clamp01, ease, prog, rnd, useTime, win } from "../lib/kf";
 import { at } from "./words";
 
 const T = {
@@ -51,28 +51,28 @@ export const MIXED_RANGE = [T.and - 0.3, T.cost + 0.8] as const;
 
 /** the four threat types, each with its own altitude band and speed */
 const TRACKS = [
-  { key: "ballistic", t: T.ballisticM, y0: 170, y1: 250, speed: 1.0, color: C.red, label: "BALLISTIC" },
-  { key: "cruise", t: T.cruiseM, y0: 430, y1: 470, speed: 0.72, color: C.amber, label: "CRUISE" },
-  { key: "attack", t: T.drones, y0: 620, y1: 640, speed: 0.44, color: C.cream, label: "ATTACK DRONES" },
-  { key: "decoy", t: T.decoys, y0: 730, y1: 700, speed: 0.5, color: C.steel, label: "DECOYS" },
+  { key: "ballistic", t: T.ballisticM, y0: 330, y1: 390, speed: 1.0, color: C.red, label: "BALLISTIC" },
+  { key: "cruise", t: T.cruiseM, y0: 520, y1: 540, speed: 0.72, color: C.amber, label: "CRUISE" },
+  { key: "attack", t: T.drones, y0: 650, y1: 660, speed: 0.44, color: C.cream, label: "ATTACK DRONES" },
+  { key: "decoy", t: T.decoys, y0: 760, y1: 740, speed: 0.5, color: C.steel, label: "DECOYS" },
 ];
 
 export const Mixed: React.FC = () => {
   const t = useTime();
   if (t < MIXED_RANGE[0] || t > MIXED_RANGE[1]) return null;
 
-  const boardA = win(t, T.and - 0.2, T.scenario + 0.3, 0.5, 0.5);
-  const scopeA = win(t, T.scenario - 0.2, T.cost + 0.6, 0.5, 0.5);
+  const boardB = board(t, T.and - 0.2, T.scenario + 0.2);
+  const scopeB = board(t, T.scenario - 0.2, T.cost + 0.6);
   const DEF_X = 1660;
   const GROUND = 880;
 
   return (
     <Stage>
-      {boardA > 0 && (
-        <g opacity={boardA}>
+      {boardB.op > 0 && (
+        <g opacity={boardB.op} transform={boardB.tf}>
           {/* ground + altitude bands */}
           <path d={`M120,${GROUND} L1820,${GROUND}`} stroke={C.cream} strokeWidth={8} strokeLinecap="round" />
-          {[250, 470, 660].map((y, i) => (
+          {[440, 600, 710].map((y, i) => (
             <g key={y} opacity={prog(t, T.altitudes - 0.3 + i * 0.1, T.altitudes + 0.3 + i * 0.1)}>
               <path d={`M120,${y} L1820,${y}`} stroke={C.cream} strokeOpacity={0.18} strokeWidth={2} strokeDasharray="10 12" />
             </g>
@@ -83,14 +83,14 @@ export const Mixed: React.FC = () => {
           </g>
           {(() => {
             const p = prog(t, T.and, T.and + 0.8, "power2.out");
-            const a0 = Math.PI * 0.62;
-            const a1 = Math.PI * 1.02;
-            const R = 1180 * p;
+            const a0 = Math.PI;
+            const a1 = Math.PI * 1.25;
+            const R = 900 * p;
             return (
               <path
-                d={`M${DEF_X},${GROUND - 60} L${DEF_X + Math.cos(a0) * R},${GROUND - 60 + Math.sin(a0) * R} A${R},${R} 0 0 0 ${DEF_X + Math.cos(a1) * R},${GROUND - 60 + Math.sin(a1) * R}Z`}
+                d={`M${DEF_X},${GROUND - 60} L${DEF_X + Math.cos(a0) * R},${GROUND - 60 + Math.sin(a0) * R} A${R},${R} 0 0 1 ${DEF_X + Math.cos(a1) * R},${GROUND - 60 + Math.sin(a1) * R}Z`}
                 fill={C.cyan}
-                opacity={0.07}
+                opacity={0.05}
                 stroke={C.cyan}
                 strokeOpacity={0.35}
                 strokeWidth={3}
@@ -100,28 +100,30 @@ export const Mixed: React.FC = () => {
 
           {/* the radar keeps sweeping while the raid is still being described */}
           {(() => {
-            const R = 1180 * prog(t, T.and, T.and + 0.8, "power2.out");
+            const R = 900 * prog(t, T.and, T.and + 0.8, "power2.out");
             const k = ((t - T.and) * 0.32) % 1;
-            const ang = Math.PI * (0.62 + 0.4 * (k < 0.5 ? k * 2 : 2 - k * 2));
+            const ang = Math.PI * (1 + 0.25 * (k < 0.5 ? k * 2 : 2 - k * 2));
+            const q = ((t * 0.45) % 1 + 1) % 1;
+            const rq = 80 + q * (R - 80);
             return (
               <g opacity={1 - prog(t, T.routes - 0.4, T.routes + 0.2)}>
                 <path d={`M${DEF_X},${GROUND - 60} L${DEF_X + Math.cos(ang) * R},${GROUND - 60 + Math.sin(ang) * R}`} stroke={C.cyan} strokeWidth={5} opacity={0.5} />
-                <Pulse x={DEF_X} y={GROUND - 60} p={((t * 0.45) % 1 + 1) % 1} r={1000} color={C.cyan} width={5} />
+                <path d={`M${DEF_X - rq},${GROUND - 60} A${rq},${rq} 0 0 1 ${DEF_X + Math.cos(Math.PI * 1.25) * rq},${GROUND - 60 + Math.sin(Math.PI * 1.25) * rq}`} fill="none" stroke={C.cyan} strokeWidth={4} opacity={0.6 * (1 - q)} />
               </g>
             );
           })()}
-          <Tag x={860} y={150} text="WHEN THE ATTACK IS MIXED" p={prog(t, T.and, T.one + 0.4, "none")} size={40} accent={C.amber} />
+          <Tag x={960} y={150} text="WHEN THE ATTACK IS MIXED" p={prog(t, T.and, T.one + 0.4, "none")} size={40} accent={C.amber} />
           {/* who has learned to combine them */}
           {[
-            { t0: T.russia, label: "RUSSIA", x: 480 },
-            { t0: T.iran, label: "IRAN", x: 860 },
-            { t0: T.operators, label: "OTHER OPERATORS", x: 1300 },
+            { t0: T.russia, label: "RUSSIA", x: 600, w: 240 },
+            { t0: T.iran, label: "IRAN", x: 900, w: 240 },
+            { t0: T.operators, label: "OTHER OPERATORS", x: 1270, w: 380 },
           ].map((o) => {
             const p = ease("back.out(1.6)")(clamp01((t - o.t0 + 0.3) / 0.5)) * (1 - prog(t, T.drones - 0.6, T.drones - 0.1));
             if (p <= 0) return null;
             return (
               <g key={o.label} opacity={p}>
-                <rect x={o.x - 190 * p} y={286} width={380 * p} height={78} rx={12} fill={C.ink} fillOpacity={0.9} stroke={C.amber} strokeWidth={4} />
+                <rect x={o.x - (o.w / 2) * p} y={286} width={o.w * p} height={78} rx={12} fill={C.ink} fillOpacity={0.9} stroke={C.amber} strokeWidth={4} />
                 <Tag x={o.x} y={325} text={o.label} p={prog(t, o.t0, o.t0 + 0.4, "none")} size={30} accent={C.amber} />
               </g>
             );
@@ -137,11 +139,11 @@ export const Mixed: React.FC = () => {
                   const off = k * 0.16 + rnd(i * 5 + k, 3) * 0.1;
                   const run = clamp01((t - (tr.t + 0.1)) * 0.14 * tr.speed + off);
                   const x = 300 + (DEF_X - 340) * run;
-                  const y = tr.y0 + (tr.y1 - tr.y0) * run + (tr.key === "ballistic" ? -Math.sin(run * Math.PI) * 120 : Math.sin(t * 2 + k) * 6);
+                  const y = tr.y0 + (tr.y1 - tr.y0) * run + (tr.key === "ballistic" ? -Math.sin(run * Math.PI) * 105 : Math.sin(t * 2 + k) * 6);
                   const ghost = tr.key === "decoy";
                   return (
                     <g key={k} opacity={appear * (ghost ? 0.55 : 1)}>
-                      <path d={`M300,${tr.y0} Q${(300 + x) / 2},${tr.key === "ballistic" ? tr.y0 - 200 : (tr.y0 + y) / 2} ${x},${y}`} fill="none" stroke={tr.color} strokeWidth={ghost ? 3 : 4} strokeDasharray={ghost ? "6 10" : "12 9"} opacity={0.7} />
+                      <path d={`M300,${tr.y0} Q${(300 + x) / 2},${tr.key === "ballistic" ? tr.y0 - 170 : (tr.y0 + y) / 2} ${x},${y}`} fill="none" stroke={tr.color} strokeWidth={ghost ? 3 : 4} strokeDasharray={ghost ? "6 10" : "12 9"} opacity={0.7} />
                       {tr.key === "ballistic" && <BallisticMissile x={x} y={y} r={110 - run * 40} s={0.22} />}
                       {tr.key === "cruise" && <CruiseMissile x={x} y={y} s={0.3} />}
                       {(tr.key === "attack" || ghost) && <ShahedTop x={x} y={y} r={90} s={0.2} opacity={ghost ? 0.6 : 1} />}
@@ -169,8 +171,8 @@ export const Mixed: React.FC = () => {
         </g>
       )}
 
-      {scopeA > 0 && (
-        <g opacity={scopeA}>
+      {scopeB.op > 0 && (
+        <g opacity={scopeB.op} transform={scopeB.tf}>
           {(() => {
             const sweep = (t * 110) % 360;
             const blips = Array.from({ length: 14 }, (_, i) => {

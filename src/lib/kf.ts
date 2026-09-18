@@ -45,6 +45,46 @@ export const prog = (t: number, t0: number, t1: number, e = "power2.inOut") =>
 export const win = (t: number, t0: number, t1: number, inDur = 0.4, outDur = 0.4) =>
   Math.min(prog(t, t0, t0 + inDur, "power2.out"), 1 - prog(t, t1 - outDur, t1, "power2.in"));
 
+/** Camera kick on impacts: a short damped shake after each hit time. */
+export const shake = (t: number, hits: number[], amp = 9): [number, number] => {
+  let x = 0;
+  let y = 0;
+  for (const h of hits) {
+    const d = t - h;
+    if (d < 0 || d > 0.6) continue;
+    const k = amp * Math.exp(-d * 7);
+    x += k * Math.sin(d * 57);
+    y += k * Math.cos(d * 43);
+  }
+  return [x, y];
+};
+
+export type Board = { op: number; tf: string };
+
+/**
+ * One board of a scene on screen: it pushes in from the right, the camera creeps in while it holds
+ * (and kicks on `hits`), then it leaves to the left — boards hand over instead of cross-fading on top of each other.
+ */
+export const board = (
+  t: number,
+  t0: number,
+  t1: number,
+  o: { inDur?: number; outDur?: number; push?: number; hits?: number[]; cx?: number; cy?: number } = {},
+): Board => {
+  const inDur = o.inDur ?? 0.5;
+  const outDur = o.outDur ?? 0.45;
+  const pin = ease("power3.out")(clamp01((t - t0) / inDur));
+  const pout = ease("power2.in")(clamp01((t - (t1 - outDur)) / outDur));
+  const op = t <= t0 || t >= t1 ? 0 : pin * (1 - pout);
+  const dx = (1 - pin) * 120 - pout * 120;
+  const life = clamp01((t - t0) / Math.max(0.1, t1 - t0));
+  const s = (1 - 0.04 * (1 - pin)) * (1 + (o.push ?? 0.04) * life);
+  const [sx, sy] = shake(t, o.hits ?? []);
+  const cx = o.cx ?? 960;
+  const cy = o.cy ?? 500;
+  return { op, tf: `translate(${(cx + dx + sx).toFixed(2)} ${(cy + sy).toFixed(2)}) scale(${s.toFixed(4)}) translate(${-cx} ${-cy})` };
+};
+
 export const lerp = (a: number, b: number, p: number) => a + (b - a) * p;
 export const clamp01 = (x: number) => Math.max(0, Math.min(1, x));
 

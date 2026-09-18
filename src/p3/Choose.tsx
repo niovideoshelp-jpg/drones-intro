@@ -1,12 +1,13 @@
 import React from "react";
 import { C } from "../design";
 import { ShahedTop } from "../art/drones";
-import { Glyph } from "../art/p2art";
 import { LaserTurret, SPAAG, Weather } from "../art/p3art";
 import { Big, Interceptor, NoSign } from "../p2/shared";
 import { ChainLink, DocPage, Magnifier, PriceTag, Pulse, StrikeLine, Tag } from "../art/ui";
 import { Stage } from "../Stage";
-import { clamp01, ease, prog, rnd, useTime, win } from "../lib/kf";
+import { board, clamp01, ease, prog, rnd, useTime } from "../lib/kf";
+import { Lens } from "../art/lens";
+import { JammerMast } from "../art/ground";
 import { at, P3_DURATION_S } from "./words";
 
 const T = {
@@ -77,93 +78,106 @@ export const Choose: React.FC = () => {
   if (t < CHOOSE_RANGE[0]) return null;
   const end = prog(t, P3_DURATION_S - 0.6, P3_DURATION_S, "power2.in");
 
-  const flawA = win(t, T.none - 0.3, T.so - 0.2, 0.4, 0.5);
+  const flawB = board(t, T.none - 0.3, T.so - 0.1);
   const needed = prog(t, T.conventional - 0.2, T.threats + 0.3, "power2.out");
 
-  const concA = win(t, T.so - 0.3, T.ignore - 0.4, 0.4, 0.5);
+  const concB = board(t, T.so - 0.2, T.ignore - 0.3, { hits: [T.useless + 0.1, T.unsustainable + 0.1] });
   const cross = prog(t, T.useless - 0.15, T.useless + 0.5, "power2.out");
   const stamp = prog(t, T.unsustainable - 0.2, T.unsustainable + 0.5, "back.out(2)");
   const chooseP = prog(t, T.futureAD - 0.2, T.choose + 0.4, "back.out(1.6)");
 
-  const rulesA = win(t, T.ignore - 0.4, T.because - 0.2, 0.4, 0.5);
-  const warA = win(t, T.because - 0.3, T.sources - 0.5, 0.4, 0.5);
-  const srcA = win(t, T.sources - 1.2, P3_DURATION_S + 1, 0.5, 0.1);
+  const rulesB = board(t, T.ignore - 0.35, T.because - 0.1);
+  const warB = board(t, T.because - 0.2, T.sources - 0.5);
+  const srcB = board(t, T.sources - 1.1, P3_DURATION_S + 1);
 
   const counter = Math.round(clamp01((t - T.because) / (T.thousands + 0.6 - T.because)) * 4000);
 
   return (
     <Stage>
       <g opacity={1 - end}>
-        {flawA > 0 && (
-          <g opacity={flawA}>
-            <Tag x={960} y={170} text="NOTHING WORKS PERFECTLY" p={prog(t, T.none - 0.2, T.perfectly + 0.4, "none")} size={40} accent={C.red} />
+        {flawB.op > 0 && (
+          <g opacity={flawB.op} transform={flawB.tf}>
+            <Tag x={960} y={150} text="NOTHING WORKS PERFECTLY" p={prog(t, T.none - 0.2, T.perfectly + 0.4, "none")} size={40} accent={C.red} />
             {FLAWS.map((f, i) => {
-              const p = ease("back.out(1.5)")(clamp01((t - f.t + 0.35) / 0.5));
+              const lit = ease("back.out(1.5)")(clamp01((t - f.t + 0.35) / 0.5));
+              const p = Math.max(lit, 0.8 * prog(t, T.none + 0.2, T.none + 0.8));
               if (p <= 0) return null;
+              const k = ((((t - f.t) * 0.5) % 1) + 1) % 1;
               return (
-                <g key={f.label} opacity={p}>
-                  <g transform={`translate(${f.x} 470) scale(${p})`}>
-                    <circle r={126} fill={C.ink} fillOpacity={0.9} stroke={C.red} strokeWidth={5} />
-                    <circle r={150} fill="none" stroke={C.red} strokeWidth={3} strokeDasharray="10 14" opacity={0.5} transform={`rotate(${t * 28})`} />
-                    <g transform="scale(0.5) translate(0 120)">
-                      {i === 0 && <LaserTurret beam={0} />}
-                      {i === 2 && <SPAAG fire={0.3} />}
-                    </g>
-                    {i === 0 && <Weather kind="fog" s={0.7} y={-40} />}
-                    {i === 1 && <Glyph kind="link" s={0.9} color={C.red} />}
+                <g key={f.label}>
+                  <Lens id={`flaw${i}`} x={f.x} y={430} r={125} t={t} s={p} opacity={lit > 0 ? 1 : 0.5} ring={C.red} sky={i === 0 ? "storm" : "day"} label={lit > 0 ? f.label : undefined} labelP={prog(t, f.t, f.t + 0.5, "none")}>
+                    {i === 0 && (
+                      <g>
+                        <LaserTurret x={-40} y={52} s={0.36} beam={0.5 + 0.3 * Math.sin(t * 9)} angle={45} reach={150} />
+                        <Weather kind="fog" s={0.8} y={-30} />
+                      </g>
+                    )}
+                    {i === 1 && (
+                      <g>
+                        <g transform="translate(-50 52) scale(0.4)">
+                          <JammerMast />
+                        </g>
+                        <ShahedTop x={60} y={-40} r={-90} s={0.14} />
+                        <path d="M10,-60 L100,-10 M100,-60 L10,-10" stroke={C.red} strokeWidth={6} strokeLinecap="round" opacity={0.7} />
+                      </g>
+                    )}
+                    {i === 2 && (
+                      <g>
+                        <SPAAG x={-50} y={52} s={0.36} fire={0.8} angle={-30} />
+                        <ShahedTop x={80} y={-70} r={-100} s={0.1} />
+                      </g>
+                    )}
                     {i === 3 && (
                       <g>
-                        {[0, 1, 2, 3, 4, 5].map((k) => {
-                          const a = (k / 6) * Math.PI * 2;
-                          return <ShahedTop key={k} x={Math.cos(a) * 70} y={Math.sin(a) * 70} r={(a * 180) / Math.PI + 90} s={0.13} />;
+                        {[0, 1, 2, 3, 4, 5].map((j) => {
+                          const a = (j / 6) * Math.PI * 2;
+                          const rr = 110 - k * 50;
+                          return <ShahedTop key={j} x={Math.cos(a) * rr} y={-20 + Math.sin(a) * rr * 0.55} r={(a * 180) / Math.PI + 90} s={0.1} />;
                         })}
                       </g>
                     )}
-                  </g>
-                  <NoSign x={f.x} y={470} p={prog(t, f.t, f.t + 0.5, "none")} r={126} />
-                  <Tag x={f.x} y={640} text={f.label} p={prog(t, f.t, f.t + 0.5, "none")} size={22} accent={C.red} />
+                  </Lens>
+                  <NoSign x={f.x} y={430} p={prog(t, f.t, f.t + 0.5, "none")} r={132} />
                 </g>
               );
             })}
             {needed > 0 && (
               <g opacity={needed}>
-                <g transform={`translate(960 780) scale(${0.7 * needed})`}>
-                  <Interceptor kind="pac3" flame={0.6} />
+                <g transform={`translate(${900 + needed * 60} ${760 - needed * 20}) rotate(-12) scale(${0.62 * needed})`}>
+                  <Interceptor kind="pac3" flame={0.8} />
                 </g>
-                <Tag x={960} y={826} text="STILL NECESSARY FOR THE HARDEST THREATS" p={needed} size={30} accent={C.red} />
+                <Tag x={960} y={860} text="STILL NECESSARY FOR THE HARDEST THREATS" p={needed} size={30} accent={C.red} />
               </g>
             )}
           </g>
         )}
 
-        {concA > 0 && (
-          <g opacity={concA}>
-            <g transform={`translate(${540 + Math.sin(t * 1.3) * 16} ${430 + Math.sin(t * 2.1) * 12})`}>
+        {concB.op > 0 && (
+          <g opacity={concB.op} transform={concB.tf}>
+            <g transform={`translate(${420 + Math.sin(t * 1.3) * 16} ${430 + Math.sin(t * 2.1) * 12})`}>
               <ShahedTop s={0.42} r={-90} />
               <PriceTag x={-150} y={168} text="$20,000" size={50} color={C.amber} s={prog(t, T.d20 - 0.2, T.d20 + 0.3, "back.out(2)")} />
             </g>
-            <g transform={`translate(1380 ${430 + Math.cos(t * 1.7) * 12})`}>
-              <Interceptor kind="pac3" s={0.85} r={-20} flame={0.4} />
+            <g transform={`translate(1520 ${430 + Math.cos(t * 1.7) * 12})`}>
+              <Interceptor kind="pac3" s={0.8} r={-20} flame={0.4} />
               <PriceTag x={-130} y={168} text="$1M" size={50} color={C.red} s={prog(t, T.millionDollar - 0.2, T.millionDollar + 0.3, "back.out(2)")} />
             </g>
-            <Big x={960} y={450} text="USELESS?" size={72} color={C.cream} opacity={prog(t, T.useless - 0.5, T.useless)} />
-            <StrikeLine x1={790} y1={380} x2={1130} y2={490} p={cross} width={14} />
+            <Big x={960} y={455} text="USELESS?" size={72} color={C.cream} opacity={prog(t, T.useless - 0.5, T.useless)} />
+            <StrikeLine x1={790} y1={385} x2={1130} y2={495} p={cross} width={14} />
             {stamp > 0 && (
-              <g transform={`translate(960 720) rotate(-6) scale(${stamp})`}>
+              <g transform={`translate(960 760) rotate(-5) scale(${stamp})`}>
                 <rect x={-420} y={-64} width={840} height={128} rx={14} fill={C.ink} fillOpacity={0.9} stroke={C.red} strokeWidth={9} />
                 <Big x={0} y={16} text="AS THE STANDARD ANSWER:" size={40} color={C.cream} />
                 <Big x={0} y={70} text="UNSUSTAINABLE" size={54} color={C.red} />
               </g>
             )}
-            {chooseP > 0 && <Tag x={960} y={852} text="AIR DEFENCE HAS TO LEARN HOW TO CHOOSE" p={chooseP} size={40} accent={C.amber} />}
+            {chooseP > 0 && <Tag x={960} y={915} text="AIR DEFENCE HAS TO LEARN HOW TO CHOOSE" p={chooseP} size={38} accent={C.amber} />}
           </g>
         )}
 
-        {rulesA > 0 && (
-          <g opacity={rulesA}>
+        {rulesB.op > 0 && (
+          <g opacity={rulesB.op} transform={rulesB.tf}>
             <Tag x={960} y={180} text="HOW TO CHOOSE" p={prog(t, T.ignore - 0.3, T.ignore + 0.3, "none")} size={44} accent={C.cream} />
-            {/* a read-head running down the list keeps the rules alive between entries */}
-            <rect x={300} y={300 + (((t - T.ignore) * 0.45) % 1 + 1) % 1 * 580} width={1320} height={10} rx={5} fill={C.cream} opacity={0.18} />
             {RULES.map((r, i) => {
               const p = ease("back.out(1.5)")(clamp01((t - r.t + 0.25) / 0.5));
               if (p <= 0) return null;
@@ -182,8 +196,8 @@ export const Choose: React.FC = () => {
           </g>
         )}
 
-        {warA > 0 && (
-          <g opacity={warA}>
+        {warB.op > 0 && (
+          <g opacity={warB.op} transform={warB.tf}>
             <Tag x={960} y={200} text="IN A LONG WAR" p={prog(t, T.because - 0.2, T.because + 0.5, "none")} size={40} accent={C.cream} />
             <Big x={960} y={520} text={counter.toLocaleString("en-US")} size={190} color={C.amber} />
             <Tag x={960} y={620} text="THREATS HANDLED" p={prog(t, T.most - 0.2, T.most + 0.4, "none")} size={30} accent={C.amber} />
@@ -191,12 +205,12 @@ export const Choose: React.FC = () => {
               const k = (((t - T.because) * 0.2 + i / 22) % 1 + 1) % 1;
               return <ShahedTop key={i} x={1980 - k * 2100} y={760 + ((i * 47) % 3) * 90 + rnd(i, 3) * 20} r={-90} s={0.15} opacity={0.85} />;
             })}
-            <Tag x={960} y={930} text="THE WINNER IS WHOEVER CAN KEEP DOING IT" p={prog(t, T.keep - 0.2, T.thousands + 0.5, "none")} size={32} accent={C.green} />
+            <Tag x={960} y={705} text="THE WINNER IS WHOEVER CAN KEEP DOING IT" p={prog(t, T.keep - 0.2, T.thousands + 0.5, "none")} size={32} accent={C.green} />
           </g>
         )}
 
-        {srcA > 0 && (
-          <g opacity={srcA}>
+        {srcB.op > 0 && (
+          <g opacity={srcB.op} transform={srcB.tf}>
             {[0, 1, 2].map((i) => {
               const p = ease("back.out(1.6)")(clamp01((t - T.sources + 1.1 - i * 0.2) / 0.6));
               if (p <= 0) return null;
@@ -209,7 +223,7 @@ export const Choose: React.FC = () => {
               <Magnifier />
             </g>
             <Tag x={960} y={860} text="SOURCES IN THE DESCRIPTION" p={prog(t, T.sources - 0.2, T.description + 0.4, "none")} size={38} accent={C.amber} />
-            <Pulse x={960} y={440} p={prog(t, T.yourself, T.yourself + 1, "none")} r={520} color={C.amber} width={8} />
+            <Pulse x={960} y={440} p={prog(t, T.yourself, T.yourself + 1, "none")} r={300} color={C.amber} width={8} />
           </g>
         )}
       </g>

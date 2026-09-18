@@ -6,7 +6,7 @@ import { Big, Interceptor } from "./shared";
 import { Bracket, Glyph, WaterLine } from "../art/p2art";
 import { DocPage, Pulse, Tag } from "../art/ui";
 import { Stage } from "../Stage";
-import { clamp01, ease, prog, useTime, win } from "../lib/kf";
+import { board, clamp01, ease, prog, useTime, win } from "../lib/kf";
 import { at } from "./words";
 
 const T = {
@@ -69,23 +69,35 @@ export const Chain: React.FC = () => {
   const t = useTime();
   if (t < CHAIN_RANGE[0] || t > CHAIN_RANGE[1]) return null;
 
-  const chainA = win(t, T.cost - 0.2, T.reuters - 0.2, 0.4, 0.5);
-  const kitA = win(t, T.takes - 0.3, T.interceptorW - 0.1, 0.4, 0.5);
-  const bergA = win(t, T.interceptorW - 0.4, T.and2 + 0.6, 0.5, 0.5);
+  /* the kit replaces the chain on screen instead of landing on top of it */
+  const chainB = board(t, T.cost - 0.2, T.takes + 0.15);
+  const kitB = board(t, T.takes - 0.2, T.interceptorW - 0.3);
+  const bergB = board(t, T.interceptorW - 0.3, T.and2 + 0.1);
+  const kitShown = KIT.reduce((n, k) => n + clamp01((t - k.t + 0.25) / 0.45), 0);
+  /* how many steps are on screen, smoothly: the chain stays centred while it grows */
+  const shown = STEPS.reduce((n, st) => n + clamp01((t - st.t + 0.25) / 0.45), 0);
 
   const gather = prog(t, T.complete - 0.2, T.billion, "power2.inOut");
   const billion = prog(t, T.billion - 0.1, T.dollars + 0.3, "back.out(1.6)");
 
   return (
     <Stage>
-      {chainA > 0 && (
-        <g opacity={chainA}>
-          <ShahedTop x={200} y={250 + Math.sin(t * 1.7) * 14} r={90} s={0.28} />
-          <path d={`M120,250 L${200 + 60},250`} stroke={C.red} strokeWidth={4} strokeDasharray="10 8" strokeDashoffset={-t * 26} opacity={0.6} />
+      {chainB.op > 0 && (
+        <g opacity={chainB.op} transform={chainB.tf}>
+          {/* the threat keeps coming while the chain is built */}
+          {(() => {
+            const dx = 140 + prog(t, T.cost, T.takes, "none") * 1500;
+            return (
+              <g>
+                <path d={`M60,370 L${dx - 60},370`} stroke={C.red} strokeWidth={4} strokeDasharray="10 8" strokeDashoffset={-t * 26} opacity={0.6} />
+                <ShahedTop x={dx} y={370 + Math.sin(t * 1.7) * 12} r={90} s={0.28} />
+              </g>
+            );
+          })()}
           {STEPS.map((s, i) => {
             const p = ease("back.out(1.6)")(clamp01((t - s.t + 0.25) / 0.45));
-            const x = 330 + i * 330;
-            const y = 520;
+            const x = 960 + (i - (shown - 1) / 2) * 330;
+            const y = 560;
             if (p <= 0) return null;
             const link = i === 0 ? 0 : prog(t, s.t - 0.35, s.t, "power2.out");
             return (
@@ -110,23 +122,26 @@ export const Chain: React.FC = () => {
         </g>
       )}
 
-      {kitA > 0 && (
-        <g opacity={kitA}>
+      {kitB.op > 0 && (
+        <g opacity={kitB.op} transform={kitB.tf}>
           {KIT.map((k, i) => {
             const p = ease("back.out(1.7)")(clamp01((t - k.t + 0.25) / 0.45));
             if (p <= 0) return null;
-            const x0 = 280 + i * 170;
-            const y0 = 620;
+            const x0 = 960 + (i - (kitShown - 1) / 2) * 170;
+            const y0 = 640;
             const x = x0 + (960 - x0) * gather;
             const y = y0 + (700 - y0) * gather;
-            const s = p * (1 - 0.45 * gather);
+            const s = p * (1 - 0.6 * gather);
+            const fade = 1 - clamp01((gather - 0.55) / 0.35);
             return (
               <g key={k.label}>
-                <g transform={`translate(${x} ${y}) scale(${s})`}>
+                <g transform={`translate(${x} ${y}) scale(${Math.max(0.001, s)})`} opacity={fade}>
                   <circle r={92} fill={C.ink} fillOpacity={0.9} stroke={C.cyan} strokeWidth={5} />
                   <Glyph kind={k.kind} s={0.9} />
                 </g>
-                <Tag x={x0} y={770} text={k.label} p={prog(t, k.t, k.t + 0.5, "none") * (1 - gather)} size={22} accent={C.cyan} />
+                <g opacity={1 - clamp01(gather * 2.5)}>
+                  <Tag x={x0} y={790} text={k.label} p={prog(t, k.t, k.t + 0.5, "none")} size={22} accent={C.cyan} />
+                </g>
               </g>
             );
           })}
@@ -134,6 +149,12 @@ export const Chain: React.FC = () => {
             <g opacity={win(t, T.reuters - 0.4, T.interceptorW - 0.2, 0.3, 0.4)}>
               <DocPage x={330} y={300} s={0.32} r={-6} lines={1} chart={prog(t, T.reuters, T.competition)} tab={C.amber} />
               <Tag x={520} y={300} text="REUTERS" p={prog(t, T.reuters, T.reuters + 0.5, "none")} size={36} accent={C.amber} anchor="start" />
+            </g>
+          )}
+          {/* every piece merges into one battery */}
+          {gather > 0.5 && (
+            <g transform={`translate(960 ${800}) scale(${0.62 * ease("back.out(1.6)")(clamp01((gather - 0.5) / 0.5))})`}>
+              <LauncherSide elev={42} />
             </g>
           )}
           {billion > 0 && (
@@ -146,8 +167,8 @@ export const Chain: React.FC = () => {
         </g>
       )}
 
-      {bergA > 0 && (
-        <g opacity={bergA}>
+      {bergB.op > 0 && (
+        <g opacity={bergB.op} transform={bergB.tf}>
           <WaterLine y={470} p={prog(t, T.interceptorW - 0.2, T.visible, "power2.out")} />
           <g transform={`translate(960 ${330 + Math.sin(t * 1.4) * 6}) scale(0.9)`}>
             <Interceptor kind="pac3" flame={0.4} r={-30} />
@@ -160,18 +181,18 @@ export const Chain: React.FC = () => {
               <g opacity={p}>
                 <path d={`M${960 - 760 * p},520 L${960 + 760 * p},520 L${960 + 520 * p},960 L${960 - 520 * p},960Z`} fill={C.cyan} opacity={0.08} stroke={C.cyan} strokeOpacity={0.4} strokeWidth={4} />
                 {KIT.slice(0, 6).map((k, i) => (
-                  <g key={k.label} transform={`translate(${520 + i * 176} ${620}) scale(${0.55 * p})`}>
+                  <g key={k.label} transform={`translate(${520 + i * 176} ${600}) scale(${0.55 * p})`}>
                     <circle r={92} fill={C.ink} fillOpacity={0.85} stroke={C.cyan} strokeWidth={5} />
                     <Glyph kind={k.kind} s={0.9} />
                   </g>
                 ))}
-                <g transform={`translate(700 880) scale(${0.42 * p})`}>
+                <g transform={`translate(700 925) scale(${0.4 * p})`}>
                   <LauncherSide elev={40} />
                 </g>
-                <g transform={`translate(1260 880) scale(${0.42 * p})`}>
+                <g transform={`translate(1260 925) scale(${0.4 * p})`}>
                   <LauncherSide elev={54} />
                 </g>
-                <Big x={960} y={790} text="$1,000,000,000+" size={78} color={C.amber} opacity={p} />
+                <Big x={960} y={750} text="$1,000,000,000+" size={78} color={C.amber} opacity={p} />
               </g>
             );
           })()}

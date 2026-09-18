@@ -15,6 +15,22 @@ export const GlobalDefs: React.FC = () => (
       <pattern id="pat-contours" patternUnits="userSpaceOnUse" width={1024} height={1024}>
         <image href={staticFile("tex/contours.png")} width={1024} height={1024} />
       </pattern>
+      {/* skies for the illustrated lenses (src/art/lens.tsx), same palette as the intro's mission lenses */}
+      <linearGradient id="lens-day" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor="#3C565B" />
+        <stop offset="70%" stopColor="#7A938A" />
+        <stop offset="100%" stopColor="#A7AE92" />
+      </linearGradient>
+      <linearGradient id="lens-dusk" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor="#2E3A4A" />
+        <stop offset="65%" stopColor="#7D6A5A" />
+        <stop offset="100%" stopColor="#C49A68" />
+      </linearGradient>
+      <linearGradient id="lens-storm" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor="#2B3336" />
+        <stop offset="70%" stopColor="#56615F" />
+        <stop offset="100%" stopColor="#7C837A" />
+      </linearGradient>
       <filter id="tex" x={0} y={0} width={1920} height={1080} filterUnits="userSpaceOnUse">
         <feImage href={staticFile("tex/mottle.png")} x={0} y={0} width={1024} height={1024} result="img" />
         <feTile in="img" result="tile" />

@@ -65,8 +65,15 @@ export const CityBlock: React.FC<Placed & { lit?: number }> = ({ lit = 1, ...p }
   );
 };
 
-/** Anti-aircraft gun, side view, firing tracers upward. */
-export const AAGunBig: React.FC<Placed & { fire?: number }> = ({ fire = 0, ...p }) => {
+
+/** Where an AAGunBig placed at x,y (scale s) must point its barrel to hit tx,ty, and where its muzzle then is. */
+export const aimGun = (tx: number, ty: number, x: number, y: number, s = 1) => {
+  const py = y - 70 * s;
+  const a = Math.atan2(ty - py, tx - x);
+  return { angle: (a * 180) / Math.PI, mx: x + Math.cos(a) * 150 * s, my: py + Math.sin(a) * 150 * s };
+};
+
+export const AAGunBig: React.FC<Placed & { fire?: number; angle?: number }> = ({ fire = 0, angle = -52, ...p }) => {
   const t = useTime();
   const recoil = fire > 0 ? Math.sin(t * 40) * 5 : 0;
   return (
@@ -75,7 +82,7 @@ export const AAGunBig: React.FC<Placed & { fire?: number }> = ({ fire = 0, ...p 
       <circle cx={-52} cy={-8} r={20} fill={C.ink2} stroke={C.ink} strokeWidth={4} />
       <circle cx={52} cy={-8} r={20} fill={C.ink2} stroke={C.ink} strokeWidth={4} />
       <rect x={-46} y={-84} width={92} height={54} rx={10} fill={C.oliveDark} {...OL} strokeWidth={5} />
-      <g transform={`rotate(-52 0 -70) translate(${recoil} 0)`}>
+      <g transform={`rotate(${angle} 0 -70) translate(${recoil} 0)`}>
         <rect x={-10} y={-96} width={150} height={13} rx={5} fill={C.steelDark} {...OL} strokeWidth={4} />
         <rect x={-10} y={-74} width={150} height={13} rx={5} fill={C.steelDark} {...OL} strokeWidth={4} />
         {fire > 0 && (
@@ -91,37 +98,60 @@ export const AAGunBig: React.FC<Placed & { fire?: number }> = ({ fire = 0, ...p 
 };
 
 /** Tracer streaks going up (and the spent rounds coming back down). */
-export const Tracers: React.FC<{ x: number; y: number; up: number; down?: number; angle?: number; seed?: number }> = ({ x, y, up, down = 0, angle = -52, seed = 0 }) => {
+/**
+ * Gun bursts. With a target (tx, ty) every streak flies from the muzzle to the target and stops there, sparking;
+ * without one they fly along `angle` for `reach` px. `down` drops the rounds that missed back onto `area`
+ * (x0..x1, landing at y1) as bright points with a short trail.
+ */
+export const Tracers: React.FC<{
+  x: number;
+  y: number;
+  up: number;
+  down?: number;
+  angle?: number;
+  reach?: number;
+  tx?: number;
+  ty?: number;
+  seed?: number;
+  area?: { x0: number; x1: number; y0: number; y1: number };
+}> = ({ x, y, up, down = 0, angle = -52, reach = 520, tx, ty, seed = 0, area = { x0: 600, x1: 1500, y0: 200, y1: 860 } }) => {
   const t = useTime();
-  const rad = (angle * Math.PI) / 180;
+  const aimed = tx !== undefined && ty !== undefined;
+  const rad = aimed ? Math.atan2(ty - y, tx - x) : (angle * Math.PI) / 180;
+  const dist = aimed ? Math.hypot(tx - x, ty - y) : reach;
+  const nx = -Math.sin(rad);
+  const ny = Math.cos(rad);
   return (
     <g>
       {up > 0 &&
-        Array.from({ length: 14 }, (_, i) => {
-          const k = (((t * 1.6 + i / 14) % 1) + 1) % 1;
-          const len = 90;
-          const d = 120 + k * 900;
-          const jx = Math.sin(i * 3 + seed) * 22 * k;
+        Array.from({ length: 12 }, (_, i) => {
+          const k = (((t * 1.8 + i / 12 + seed * 0.13) % 1) + 1) % 1;
+          const len = Math.min(80, dist * 0.18);
+          const d = 30 + k * (dist - 30 - len);
+          const j = Math.sin(i * 3.7 + seed) * 14 * k;
+          const x0 = x + Math.cos(rad) * d + nx * j;
+          const y0 = y + Math.sin(rad) * d + ny * j;
           return (
-            <path
-              key={i}
-              d={`M${x + Math.cos(rad) * d + jx},${y + Math.sin(rad) * d} L${x + Math.cos(rad) * (d + len) + jx},${y + Math.sin(rad) * (d + len)}`}
-              stroke={C.amber}
-              strokeWidth={7}
-              strokeLinecap="round"
-              opacity={up * (1 - k) * 0.9}
-            />
+            <path key={i} d={`M${x0},${y0} L${x0 + Math.cos(rad) * len},${y0 + Math.sin(rad) * len}`} stroke={C.amber} strokeWidth={6} strokeLinecap="round" opacity={up * (0.35 + 0.6 * (1 - k))} />
           );
         })}
+      {up > 0 &&
+        aimed &&
+        [0, 1, 2].map((i) => {
+          const k = (((t * 3 + i / 3) % 1) + 1) % 1;
+          return <circle key={`s${i}`} cx={tx + Math.cos(i * 2.1 + t * 9) * 18 * k} cy={ty + Math.sin(i * 2.1 + t * 9) * 18 * k} r={7 * (1 - k)} fill="#FFE7A6" opacity={up} />;
+        })}
       {down > 0 &&
-        Array.from({ length: 16 }, (_, i) => {
-          const k = (((t * 0.55 + i / 16) % 1) + 1) % 1;
-          const px = 300 + ((i * 137) % 1300);
-          const py = 120 + k * 760;
+        Array.from({ length: 12 }, (_, i) => {
+          const k = (((t * 0.6 + i / 12) % 1) + 1) % 1;
+          const px = area.x0 + ((i * 0.618 + seed * 0.1) % 1) * (area.x1 - area.x0);
+          const py = area.y0 + k * k * (area.y1 - area.y0);
+          const land = k > 0.94;
           return (
             <g key={`d${i}`} opacity={down}>
-              <path d={`M${px},${py} L${px - 6},${py - 34}`} stroke={C.steelLight} strokeWidth={5} strokeLinecap="round" opacity={0.8} />
-              {k > 0.93 && <circle cx={px} cy={py} r={14 * (1 - (k - 0.93) / 0.07)} fill="none" stroke={C.red} strokeWidth={4} />}
+              {!land && <path d={`M${px},${py} L${px},${py - 26}`} stroke={C.amber} strokeWidth={3} strokeLinecap="round" opacity={0.45} />}
+              {!land && <circle cx={px} cy={py} r={5} fill="#FFE7A6" />}
+              {land && <circle cx={px} cy={area.y1} r={16 * (1 - (k - 0.94) / 0.06)} fill="none" stroke={C.red} strokeWidth={4} />}
             </g>
           );
         })}

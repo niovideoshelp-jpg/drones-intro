@@ -4,7 +4,14 @@ import { useTime } from "../lib/kf";
 import { OL, Placed, blink, place, thin } from "./style";
 
 /** Laser turret on a vehicle; `beam` fires a beam up-right. */
-export const LaserTurret: React.FC<Placed & { beam?: number; angle?: number }> = ({ beam = 0, angle = -46, ...p }) => {
+/** Barrel angle (0 = straight up, clockwise positive) and beam length that put a turret at x,y (scale s) on target tx,ty. */
+export const aimTurret = (tx: number, ty: number, x: number, y: number, s = 1) => {
+  const dx = tx - x;
+  const dy = ty - (y - 96 * s);
+  return { angle: (Math.atan2(dx, -dy) * 180) / Math.PI, reach: Math.max(0, Math.hypot(dx, dy) / s - 94) };
+};
+
+export const LaserTurret: React.FC<Placed & { beam?: number; angle?: number; reach?: number }> = ({ beam = 0, angle = 40, reach = 1500, ...p }) => {
   const t = useTime();
   const flick = 1 + 0.25 * Math.sin(t * 48);
   return (
@@ -20,8 +27,9 @@ export const LaserTurret: React.FC<Placed & { beam?: number; angle?: number }> =
         <circle cx={0} cy={-186} r={13} fill={beam > 0 ? "#9BE8FF" : C.steelDark} />
         {beam > 0 && (
           <g opacity={beam}>
-            <path d={`M0,-190 L0,${-190 - 1500}`} stroke="#9BE8FF" strokeWidth={26 * flick} strokeLinecap="round" opacity={0.25} />
-            <path d={`M0,-190 L0,${-190 - 1500}`} stroke="#DCF7FF" strokeWidth={9 * flick} strokeLinecap="round" />
+            <path d={`M0,-190 L0,${-190 - reach}`} stroke="#9BE8FF" strokeWidth={26 * flick} strokeLinecap="round" opacity={0.25} />
+            <path d={`M0,-190 L0,${-190 - reach}`} stroke="#DCF7FF" strokeWidth={9 * flick} strokeLinecap="round" />
+            <circle cx={0} cy={-190 - reach} r={30 * flick} fill="#DCF7FF" opacity={0.55} />
             <circle cx={0} cy={-190} r={34 * flick} fill="#9BE8FF" opacity={0.4} />
           </g>
         )}
@@ -32,7 +40,7 @@ export const LaserTurret: React.FC<Placed & { beam?: number; angle?: number }> =
 };
 
 /** High-power microwave emitter: a flat dish sweeping a wedge of energy. */
-export const MicrowaveEmitter: React.FC<Placed & { fire?: number }> = ({ fire = 0, ...p }) => {
+export const MicrowaveEmitter: React.FC<Placed & { fire?: number; angle?: number; range?: number }> = ({ fire = 0, angle = 34, range = 210, ...p }) => {
   const t = useTime();
   return (
     <g transform={place(p)} className={p.className} opacity={p.opacity}>
@@ -41,7 +49,7 @@ export const MicrowaveEmitter: React.FC<Placed & { fire?: number }> = ({ fire = 
         <circle key={x} cx={x} cy={-6} r={18} fill={C.ink2} stroke={C.ink} strokeWidth={4} />
       ))}
       <rect x={-52} y={-88} width={104} height={54} rx={8} fill={C.olive} {...OL} strokeWidth={5} />
-      <g transform="rotate(-34 0 -88)">
+      <g transform={`rotate(${angle} 0 -88)`}>
         <rect x={-18} y={-210} width={36} height={124} rx={8} fill={C.steelDark} {...OL} strokeWidth={4} />
         <rect x={-120} y={-266} width={240} height={70} rx={10} fill={C.cream} {...OL} strokeWidth={5} />
         {[-90, -50, -10, 30, 70].map((x) => (
@@ -53,7 +61,8 @@ export const MicrowaveEmitter: React.FC<Placed & { fire?: number }> = ({ fire = 
             return (
               <path
                 key={i}
-                d={`M${-120 - k * 120},${-266 - k * 210} L${120 + k * 120},${-266 - k * 210}`}
+                d={`M${-120 - k * range * 0.55},${-266 - k * range} Q0,${-300 - k * range * 1.12} ${120 + k * range * 0.55},${-266 - k * range}`}
+                fill="none"
                 stroke={C.cyan}
                 strokeWidth={10}
                 strokeLinecap="round"
@@ -67,7 +76,18 @@ export const MicrowaveEmitter: React.FC<Placed & { fire?: number }> = ({ fire = 
 };
 
 /** Tracked self-propelled AA gun (Gepard-style), side view. */
-export const SPAAG: React.FC<Placed & { fire?: number }> = ({ fire = 0, ...p }) => {
+/** Barrel angle (SVG degrees) about a pivot px,py in the art's own units that points art at x,y (scale s) at tx,ty; muzzle `len` along it. */
+export const aimBarrel = (tx: number, ty: number, x: number, y: number, s: number, px: number, py: number, len: number) => {
+  const wx = x + px * s;
+  const wy = y + py * s;
+  const a = Math.atan2(ty - wy, tx - wx);
+  return { angle: (a * 180) / Math.PI, mx: wx + Math.cos(a) * len * s, my: wy + Math.sin(a) * len * s };
+};
+/** SPAAG barrels pivot at (30,-120) and reach 175; CIWS at (40,-60) and 145. */
+export const aimSPAAG = (tx: number, ty: number, x: number, y: number, s: number) => aimBarrel(tx, ty, x, y, s, 30, -120, 175);
+export const aimCIWS = (tx: number, ty: number, x: number, y: number, s: number) => aimBarrel(tx, ty, x, y, s, 40, -60, 145);
+
+export const SPAAG: React.FC<Placed & { fire?: number; angle?: number }> = ({ fire = 0, angle = -48, ...p }) => {
   const t = useTime();
   const recoil = fire > 0 ? Math.sin(t * 36) * 4 : 0;
   return (
@@ -78,7 +98,7 @@ export const SPAAG: React.FC<Placed & { fire?: number }> = ({ fire = 0, ...p }) 
       ))}
       <path d="M-160,-54 L160,-54 L148,-84 L-148,-84Z" fill={C.olive} {...OL} strokeWidth={5} />
       <path d="M-70,-84 L60,-84 L46,-136 L-58,-136Z" fill="#7C8550" {...OL} strokeWidth={5} />
-      <g transform={`translate(${recoil} 0) rotate(-48 30 -120)`}>
+      <g transform={`translate(${recoil} 0) rotate(${angle} 30 -120)`}>
         <rect x={20} y={-136} width={180} height={12} rx={5} fill={C.steelDark} {...OL} strokeWidth={4} />
         <rect x={20} y={-116} width={180} height={12} rx={5} fill={C.steelDark} {...OL} strokeWidth={4} />
       </g>
@@ -90,7 +110,7 @@ export const SPAAG: React.FC<Placed & { fire?: number }> = ({ fire = 0, ...p }) 
 };
 
 /** Close-in weapon system (Phalanx-style radome + rotary cannon). */
-export const CIWS: React.FC<Placed & { fire?: number }> = ({ fire = 0, ...p }) => {
+export const CIWS: React.FC<Placed & { fire?: number; angle?: number }> = ({ fire = 0, angle = -38, ...p }) => {
   const t = useTime();
   const spin = fire > 0 ? t * 900 : 0;
   return (
@@ -98,7 +118,7 @@ export const CIWS: React.FC<Placed & { fire?: number }> = ({ fire = 0, ...p }) =
       <path d="M-70,0 L70,0 L54,-40 L-54,-40Z" fill={C.steelDark} {...OL} strokeWidth={5} />
       <path d="M-60,-40 C-60,-150 60,-150 60,-40Z" fill={C.cream} {...OL} strokeWidth={5} />
       <path d="M-34,-70 C-34,-120 34,-120 34,-70" stroke="#fff" strokeOpacity={0.5} strokeWidth={6} fill="none" />
-      <g transform="rotate(-38 40 -60)">
+      <g transform={`rotate(${angle} 40 -60)`}>
         <rect x={30} y={-80} width={40} height={54} rx={8} fill={C.steelDark} {...OL} strokeWidth={4} />
         <g transform={`translate(70 -54) rotate(${spin})`}>
           {[0, 60, 120, 180, 240, 300].map((a) => (

@@ -1,10 +1,10 @@
 import React from "react";
 import { C } from "../design";
 import { ShahedTop } from "../art/drones";
-import { AAGunBig, CityBlock, Gauge, Tracers } from "../art/p2art";
+import { AAGunBig, aimGun, CityBlock, Gauge, Tracers } from "../art/p2art";
 import { Explosion, Pulse, Tag } from "../art/ui";
 import { Stage } from "../Stage";
-import { clamp01, ease, prog, rnd, useTime, win } from "../lib/kf";
+import { board, clamp01, ease, prog, rnd, useTime, win } from "../lib/kf";
 import { at, P2_DURATION_S } from "./words";
 
 const T = {
@@ -47,29 +47,34 @@ export const Cities: React.FC = () => {
   const t = useTime();
   if (t < CITIES_RANGE[0]) return null;
 
-  const cityA = win(t, T.and - 0.2, T.near - 0.2, 0.4, 0.5);
+  const cityB = board(t, T.and - 0.2, T.near - 0.1, { hits: [T.drone] });
+  const droneX = 1320 - prog(t, T.gun, T.drone, "none") * 120;
+  const droneY = 230 + Math.sin(t * 2) * 10;
+  const gs = 0.85 * ease("back.out(1.4)")(clamp01((t - T.gun + 0.3) / 0.6));
+  const aim = aimGun(droneX, droneY, 250, 900, 0.85);
   const fire = win(t, T.throw - 0.2, T.somewhere + 1.4, 0.2, 0.6);
   const rain = win(t, T.come - 0.2, T.warhead + 0.6, 0.4, 0.6);
   const hit = prog(t, T.drone - 0.25, T.drone + 0.9, "none");
   const wreck = prog(t, T.wreckage - 0.2, T.warhead + 0.6, "power1.in");
-  const compareA = win(t, T.near - 0.3, P2_DURATION_S + 1, 0.5, 0.1) * (1 - prog(t, P2_DURATION_S - 0.5, P2_DURATION_S, "power2.in"));
+  const compareB = board(t, T.near - 0.3, P2_DURATION_S + 0.5);
+  const compareA = compareB.op * (1 - prog(t, P2_DURATION_S - 0.5, P2_DURATION_S, "power2.in"));
 
   return (
     <Stage>
-      {cityA > 0 && (
-        <g opacity={cityA}>
+      {cityB.op > 0 && (
+        <g opacity={cityB.op} transform={cityB.tf}>
           {[520, 960, 1400].map((x, i) => (
             <g key={x} transform={`translate(${x} ${900}) scale(${0.72 * ease("back.out(1.3)")(clamp01((t - T.and + 0.2 - i * 0.12) / 0.7))})`}>
               <CityBlock />
             </g>
           ))}
-          <Tag x={960} y={210} text="DANGEROUS OVER CITIES" p={prog(t, T.and, T.cities + 0.4, "none")} size={40} accent={C.red} />
-          <g transform={`translate(250 ${900}) scale(${0.85 * ease("back.out(1.4)")(clamp01((t - T.gun + 0.3) / 0.6))})`}>
-            <AAGunBig fire={fire} />
+          <Tag x={960} y={130} text="DANGEROUS OVER CITIES" p={prog(t, T.and, T.cities + 0.4, "none")} size={40} accent={C.red} />
+          <g transform={`translate(250 ${900}) scale(${gs})`}>
+            <AAGunBig fire={fire} angle={aim.angle} />
           </g>
-          <Tracers x={300} y={790} up={fire} down={rain} seed={2} />
+          <Tracers x={aim.mx} y={aim.my} up={fire * (hit < 0.2 ? 1 : 0)} tx={droneX} ty={droneY} down={rain} seed={2} area={{ x0: 480, x1: 1460, y0: 300, y1: 870 }} />
           {hit < 0.2 && (
-            <ShahedTop x={1320 - prog(t, T.gun, T.drone, "none") * 120} y={230 + Math.sin(t * 2) * 10} r={110} s={0.3} opacity={prog(t, T.gun - 0.6, T.gun)} />
+            <ShahedTop x={droneX} y={droneY} r={110} s={0.3} opacity={prog(t, T.gun - 0.6, T.gun)} />
           )}
           {hit > 0 && hit < 1 && <Explosion x={1200} y={230} p={hit} size={110} seed={31} />}
           {/* the wreck itself still carries fuel, metal, a warhead */}
@@ -96,7 +101,7 @@ export const Cities: React.FC = () => {
       )}
 
       {compareA > 0 && (
-        <g opacity={compareA}>
+        <g opacity={compareA} transform={compareB.tf}>
           {[
             { key: "base", x: 540, t0: T.isolated, label: "ISOLATED BASE", risk: 0.25, color: C.green, tRisk: T.acceptable },
             { key: "urban", x: 1380, t0: T.urban, label: "URBAN AREA", risk: 0.92, color: C.red, tRisk: T.complicated },
@@ -107,7 +112,6 @@ export const Cities: React.FC = () => {
               <g key={c.key} opacity={p}>
                 <rect x={c.x - 380} y={200} width={760} height={700} rx={24} fill={C.ink} fillOpacity={0.55} stroke={c.color} strokeWidth={5} />
                 <rect x={c.x - 380} y={200} width={760} height={700} rx={24} fill="none" stroke={c.color} strokeWidth={4} strokeDasharray="22 18" strokeDashoffset={-t * 34} opacity={0.6} />
-                <Pulse x={c.x} y={640} p={((t * 0.4 + (c.key === "urban" ? 0.5 : 0)) % 1 + 1) % 1} r={420} color={c.color} width={4} />
                 <g transform={`translate(${c.x} ${640}) scale(${c.key === "urban" ? 0.78 : 0.8})`}>
                   {c.key === "urban" ? (
                     <CityBlock />

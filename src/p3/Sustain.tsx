@@ -4,11 +4,14 @@ import { ShahedTop } from "../art/drones";
 import { LauncherSide } from "../art/ground";
 import { Factory } from "../art/p1art";
 import { Glyph } from "../art/p2art";
-import { LaserTurret, MicrowaveEmitter, Passive, SPAAG } from "../art/p3art";
+import { aimTurret, LaserTurret, MicrowaveEmitter, Passive, SPAAG } from "../art/p3art";
+import { FPVSide } from "../art/drones";
+import { JammerMast } from "../art/ground";
+import { Lens } from "../art/lens";
 import { Big, Interceptor, NoSign } from "../p2/shared";
 import { PriceTag, Pulse, Tag } from "../art/ui";
 import { Stage } from "../Stage";
-import { clamp01, ease, prog, rnd, useTime, win } from "../lib/kf";
+import { board, clamp01, ease, prog, rnd, useTime, win } from "../lib/kf";
 import { at } from "./words";
 
 const T = {
@@ -73,6 +76,21 @@ const T = {
 };
 export const SUSTAIN_RANGE = [T.theyll - 0.3, T.through + 0.8] as const;
 
+const HOPE = [
+  { t0: T.lasers, kind: "laser", label: "LASERS" },
+  { t0: T.microwaves, kind: "mw", label: "MICROWAVES" },
+  { t0: T.guns, kind: "gun", label: "GUNS" },
+  { t0: T.warfare, kind: "ew", label: "EW" },
+  { t0: T.drones, kind: "drone", label: "INTERCEPTORS" },
+];
+
+const PASSIVE = [
+  { t0: T.networks, kind: "sensors" as const, label: "SENSOR NETWORKS" },
+  { t0: T.dispersing, kind: "disperse" as const, label: "DISPERSAL" },
+  { t0: T.camouflage, kind: "camo" as const, label: "CAMOUFLAGE" },
+  { t0: T.hardening, kind: "harden" as const, label: "HARDENING" },
+];
+
 const CONDITIONS = [
   { t: T.far, label: "TOO FAR OUT" },
   { t: T.fast, label: "TOO FAST" },
@@ -84,24 +102,26 @@ export const Sustain: React.FC = () => {
   const t = useTime();
   if (t < SUSTAIN_RANGE[0] || t > SUSTAIN_RANGE[1]) return null;
 
-  const topA = win(t, T.theyll - 0.2, T.because - 0.3, 0.4, 0.5);
+  const topB = board(t, T.theyll - 0.2, T.because - 0.2);
   const crown = prog(t, T.missiles - 0.2, T.there + 0.3, "back.out(2)");
   const firstAns = prog(t, T.keeping - 0.2, T.firstAnswer + 0.4, "power2.inOut");
 
-  const drainA = win(t, T.because - 0.3, T.doomed - 0.3, 0.4, 0.5);
-  const fired = Math.floor(clamp01((t - T.relying) / (T.again + 0.5 - T.relying)) * 8);
+  const drainB = board(t, T.because - 0.3, T.doomed - 0.4);
+  const drainA = drainB.op;
   const spent = clamp01((t - T.relying) / (T.again - T.relying)) * 8_000_000;
   const stamp = prog(t, T.sustain - 0.1, T.war + 0.4, "back.out(2)");
   const rate = prog(t, T.building - 0.2, T.using + 0.6, "power2.inOut");
   const industrial = prog(t, T.stops - 0.2, T.industrial + 0.5, "power2.inOut");
 
-  const hopeA = win(t, T.doomed - 0.5, T.through + 0.6, 0.4, 0.5);
+  const hopeB = board(t, T.doomed - 0.5, T.through + 0.6);
+  const hopeShown = HOPE.reduce((n, c) => n + clamp01((t - c.t0 + 0.3) / 0.45), 0);
+  const passiveShown = PASSIVE.reduce((n, c) => n + clamp01((t - c.t0 + 0.3) / 0.45), 0);
   const cutP = prog(t, T.cut - 0.4, T.attacks + 0.3, "power2.inOut");
 
   return (
     <Stage>
-      {topA > 0 && (
-        <g opacity={topA}>
+      {topB.op > 0 && (
+        <g opacity={topB.op} transform={topB.tf}>
           {/* the stack, cheap at the base, expensive on top */}
           {[
             { y: 810, w: 1180, label: "SENSORS · EW", color: C.cyan, t0: T.theyll + 0.1 },
@@ -168,29 +188,31 @@ export const Sustain: React.FC = () => {
       )}
 
       {drainA > 0 && (
-        <g opacity={drainA}>
+        <g opacity={drainA} transform={drainB.tf}>
           <Tag x={960} y={160} text="A MODEL THAT IS HARD TO SUSTAIN" p={prog(t, T.model - 0.2, T.sustain + 0.4, "none")} size={38} accent={C.red} />
-          {/* missiles leaving the stock, cheap drones arriving */}
+          {/* the stock: a rack of missiles that launch one by one as the millions go */}
+          <rect x={270} y={290} width={580} height={340} rx={16} fill={C.ink} fillOpacity={0.55} stroke={C.red} strokeWidth={4} strokeDasharray="16 12" />
           {Array.from({ length: 8 }, (_, i) => {
-            const gone = i < fired;
-            const x = 340 + (i % 4) * 150;
-            const y = 380 + Math.floor(i / 4) * 150;
+            const tf = T.relying + (i * (T.again + 0.5 - T.relying)) / 8;
+            const fly = prog(t, tf, tf + 0.9, "power2.in");
+            const x = 345 + (i % 4) * 143;
+            const y = 385 + Math.floor(i / 4) * 150;
             return (
-              <g key={i} opacity={gone ? 0.18 : 1}>
-                <g transform={`translate(${x} ${y}) rotate(-90) scale(0.32)`}>
-                  <Interceptor kind="pac3" />
+              <g key={i} opacity={1 - fly}>
+                <g transform={`translate(${x} ${y - fly * 420}) rotate(-90) scale(0.3)`}>
+                  <Interceptor kind="pac3" flame={fly > 0 ? 1 : 0} />
                 </g>
               </g>
             );
           })}
-          <Tag x={490} y={250} text="STOCK" p={prog(t, T.relying - 0.2, T.relying + 0.4, "none")} size={26} accent={C.red} />
+          <Tag x={560} y={250} text="STOCK" p={prog(t, T.relying - 0.2, T.relying + 0.4, "none")} size={26} accent={C.red} />
           {Array.from({ length: 10 }, (_, i) => {
             const k = (((t - T.relying) * 0.16 + i / 10) % 1 + 1) % 1;
             return <ShahedTop key={i} x={1900 - k * 900} y={330 + ((i * 53) % 4) * 140 + rnd(i, 2) * 30} r={-90} s={0.17} opacity={drainA} />;
           })}
           <PriceTag x={1450} y={250} text={`$${Math.round(spent).toLocaleString("en-US")}`} size={52} color={C.red} s={prog(t, T.relying, T.relying + 0.4, "back.out(2)")} />
           {stamp > 0 && (
-            <g transform={`translate(960 640) rotate(-8) scale(${stamp})`} opacity={1 - prog(t, T.stops - 0.6, T.stops - 0.1)}>
+            <g transform={`translate(1270 540) rotate(-8) scale(${stamp})`} opacity={1 - prog(t, T.building - 0.6, T.building - 0.1)}>
               <rect x={-330} y={-58} width={660} height={116} rx={12} fill="none" stroke={C.red} strokeWidth={10} />
               <Big x={0} y={26} text="UNSUSTAINABLE" size={78} color={C.red} />
             </g>
@@ -215,60 +237,67 @@ export const Sustain: React.FC = () => {
         </g>
       )}
 
-      {hopeA > 0 && (
-        <g opacity={hopeA}>
-          <Tag x={960} y={160} text="NOT DOOMED" p={prog(t, T.doomed - 0.3, T.doomed + 0.5, "none")} size={42} accent={C.green} />
-          {[
-            { t0: T.lasers, kind: "laser", label: "LASERS", x: 300 },
-            { t0: T.microwaves, kind: "mw", label: "MICROWAVES", x: 630 },
-            { t0: T.guns, kind: "gun", label: "GUNS", x: 960 },
-            { t0: T.warfare, kind: "ew", label: "EW", x: 1290 },
-            { t0: T.drones, kind: "drone", label: "INTERCEPTORS", x: 1620 },
-          ].map((c) => {
+      {hopeB.op > 0 && (
+        <g opacity={hopeB.op} transform={hopeB.tf}>
+          <Tag x={960} y={150} text="NOT DOOMED" p={prog(t, T.doomed - 0.3, T.doomed + 0.5, "none")} size={42} accent={C.green} />
+          {HOPE.map((c, i) => {
             const p = ease("back.out(1.5)")(clamp01((t - c.t0 + 0.3) / 0.45)) * (1 - prog(t, T.networks - 0.7, T.networks - 0.2));
             if (p <= 0) return null;
+            const x = 960 + (i - (hopeShown - 1) / 2) * 320;
+            const k = ((((t - c.t0) * 0.4) % 1) + 1) % 1;
             return (
-              <g key={c.label} opacity={p}>
-                <g transform={`translate(${c.x} 420) scale(${p})`}>
-                  <circle r={112} fill={C.ink} fillOpacity={0.9} stroke={C.green} strokeWidth={5} />
-                  <circle r={136} fill="none" stroke={C.green} strokeWidth={3} strokeDasharray="10 14" opacity={0.5} transform={`rotate(${t * 28})`} />
-                  <g transform="scale(0.45) translate(0 120)">
-                    {c.kind === "laser" && <LaserTurret beam={0} />}
-                    {c.kind === "mw" && <MicrowaveEmitter fire={0.7} />}
-                    {c.kind === "gun" && <SPAAG fire={0.6} />}
+              <Lens key={c.label} id={`hope${i}`} x={x} y={420} r={112} t={t} s={p} ring={C.green} label={c.label} labelP={prog(t, c.t0, c.t0 + 0.4, "none")}>
+                {c.kind === "laser" && <LaserTurret x={-30} y={47} s={0.34} beam={0.8} {...aimTurret(55, -55, -30, 47, 0.34)} />}
+                {c.kind === "mw" && <MicrowaveEmitter x={-40} y={47} s={0.32} fire={0.8} angle={55} range={260} />}
+                {c.kind === "gun" && <SPAAG x={-40} y={47} s={0.32} fire={1} angle={-40} />}
+                {c.kind === "ew" && (
+                  <g>
+                    <g transform="translate(-45 47) scale(0.36)">
+                      <JammerMast />
+                    </g>
+                    {[0, 1].map((j) => {
+                      const q = (((t * 0.9 + j / 2) % 1) + 1) % 1;
+                      return <path key={j} d={`M${-20 + q * 70},${-60} a${18 + q * 20},${40 + q * 16} 0 0 1 0,${80 + q * 32}`} fill="none" stroke={C.blue} strokeWidth={5} opacity={(1 - q) * 0.9} />;
+                    })}
                   </g>
-                  {c.kind === "ew" && <Glyph kind="link" s={1.1} color={C.green} />}
-                  {c.kind === "drone" && <ShahedTop s={0.3} r={-90} />}
-                </g>
-                <Tag x={c.x} y={570} text={c.label} p={prog(t, c.t0, c.t0 + 0.4, "none")} size={24} accent={C.green} />
-              </g>
+                )}
+                {c.kind === "drone" && (
+                  <g>
+                    <ShahedTop x={-30 + k * 120} y={-40} r={-90} s={0.1} />
+                    <FPVSide x={-95 + k * 120} y={-15 - k * 20} s={0.26} r={-10} />
+                  </g>
+                )}
+                {(c.kind === "laser" || c.kind === "mw" || c.kind === "gun") && <ShahedTop x={55 + Math.sin(t * 1.5 + i) * 8} y={-55} r={-100} s={0.1} />}
+              </Lens>
             );
           })}
           {cutP > 0 && (
             <g opacity={cutP * (1 - prog(t, T.networks - 0.7, T.networks - 0.2))}>
               <rect x={430} y={700} width={1060} height={46} rx={10} fill={C.ink} stroke={C.red} strokeWidth={4} />
               <rect x={430} y={700} width={1060 * (1 - 0.72 * cutP)} height={46} rx={10} fill={C.red} />
-              <Tag x={960} y={790} text="COST OF DEALING WITH MASS ATTACKS" p={cutP} size={28} accent={C.green} />
+              <Tag x={960} y={800} text="COST OF DEALING WITH MASS ATTACKS" p={cutP} size={28} accent={C.green} />
             </g>
           )}
           {/* sensors and passive measures */}
-          {[
-            { t0: T.networks, kind: "sensors" as const, label: "SENSOR NETWORKS", x: 430 },
-            { t0: T.dispersing, kind: "disperse" as const, label: "DISPERSAL", x: 790 },
-            { t0: T.camouflage, kind: "camo" as const, label: "CAMOUFLAGE", x: 1150 },
-            { t0: T.hardening, kind: "harden" as const, label: "HARDENING", x: 1510 },
-          ].map((c) => {
+          {PASSIVE.map((c, i) => {
             const p = ease("back.out(1.5)")(clamp01((t - c.t0 + 0.3) / 0.45));
             if (p <= 0) return null;
+            const x = 960 + (i - (passiveShown - 1) / 2) * 360;
             return (
-              <g key={c.label} opacity={p}>
-                <g transform={`translate(${c.x} 520) scale(${0.85 * p})`}>
-                  <circle r={110} fill={C.ink} fillOpacity={0.9} stroke={C.cyan} strokeWidth={5} />
-                  <circle r={134} fill="none" stroke={C.cyan} strokeWidth={3} strokeDasharray="10 14" opacity={0.5} transform={`rotate(${-t * 28})`} />
-                  {c.kind === "sensors" ? <Glyph kind="radar" s={1} /> : <Passive kind={c.kind} s={0.95} />}
-                </g>
-                <Tag x={c.x} y={680} text={c.label} p={prog(t, c.t0, c.t0 + 0.4, "none")} size={24} accent={C.cyan} />
-              </g>
+              <Lens key={c.label} id={`pas${i}`} x={x} y={500} r={120} t={t} s={p} ring={C.cyan} label={c.label} labelP={prog(t, c.t0, c.t0 + 0.4, "none")}>
+                {c.kind === "sensors" ? (
+                  <g>
+                    <g transform="translate(0 20)">
+                      <Glyph kind="radar" s={0.6} color={C.cream} />
+                    </g>
+                    <ShahedTop x={-70 + ((((t * 0.3) % 1) + 1) % 1) * 140} y={-60} r={-90} s={0.1} />
+                  </g>
+                ) : (
+                  <g transform="translate(0 18)">
+                    <Passive kind={c.kind} s={0.6} />
+                  </g>
+                )}
+              </Lens>
             );
           })}
         </g>

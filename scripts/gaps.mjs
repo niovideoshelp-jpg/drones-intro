@@ -25,7 +25,7 @@ for (const f of files) {
       return NaN;
     }
   };
-  for (const m of src.matchAll(/win\(t,\s*([^,]+),\s*([^,]+),\s*([\d.]+),\s*([\d.]+)\)/g)) {
+  for (const m of src.matchAll(/(?:win|board)\(t,\s*([^,]+),\s*([^,)]+)[,)]/g)) {
     const a = ev(m[1].trim());
     const b = ev(m[2].trim());
     if (!Number.isNaN(a) && !Number.isNaN(b) && b > a) wins.push([a, b, f]);

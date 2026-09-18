@@ -60,6 +60,7 @@ for (const w of ["Gepard,", "C-RAM,", "SkyRanger,"]) {
 }
 q("boom_b", at("airburst") + 0.25, -7);
 q("missile", at("APKWS,") + 0.1, -8);
+q("boom_b", at("APKWS,") + 0.85, -9);
 q("cash", at("dollars,") + 0.1, -9);
 q("click", at("less.") + 0.1, -10);
 q("ping", at("trade") + 0.1, -10);
@@ -93,6 +94,7 @@ q("impact", at("once.", 170) + 0.05, -8);
 q("whoosh_b", at("And", 171) + 0.2, -7);
 q("arc", at("weapons.", 177) + 0.1, -6);
 q("arc", at("Lasers") + 0.15, -9);
+q("debris", at("shot", 183) + 0.6, -11);
 q("shield", at("advantage.") + 0.1, -9);
 q("tick", at("installed,") + 0.1, -11);
 q("cash", at("fraction") + 0.1, -10);
