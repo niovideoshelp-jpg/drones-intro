@@ -88,14 +88,14 @@ export const Sustain: React.FC = () => {
   const crown = prog(t, T.missiles - 0.2, T.there + 0.3, "back.out(2)");
   const firstAns = prog(t, T.keeping - 0.2, T.firstAnswer + 0.4, "power2.inOut");
 
-  const drainA = win(t, T.because - 0.3, T.said - 0.3, 0.4, 0.5);
+  const drainA = win(t, T.because - 0.3, T.doomed - 0.3, 0.4, 0.5);
   const fired = Math.floor(clamp01((t - T.relying) / (T.again + 0.5 - T.relying)) * 8);
   const spent = clamp01((t - T.relying) / (T.again - T.relying)) * 8_000_000;
   const stamp = prog(t, T.sustain - 0.1, T.war + 0.4, "back.out(2)");
   const rate = prog(t, T.building - 0.2, T.using + 0.6, "power2.inOut");
   const industrial = prog(t, T.stops - 0.2, T.industrial + 0.5, "power2.inOut");
 
-  const hopeA = win(t, T.said - 0.3, T.through + 0.6, 0.4, 0.5);
+  const hopeA = win(t, T.doomed - 0.5, T.through + 0.6, 0.4, 0.5);
   const cutP = prog(t, T.cut - 0.4, T.attacks + 0.3, "power2.inOut");
 
   return (
@@ -104,22 +104,30 @@ export const Sustain: React.FC = () => {
         <g opacity={topA}>
           {/* the stack, cheap at the base, expensive on top */}
           {[
-            { y: 840, w: 1180, label: "SENSORS · EW", color: C.cyan, t0: T.which - 0.1 },
-            { y: 730, w: 940, label: "GUNS · ROCKETS", color: C.green, t0: T.which + 0.15 },
-            { y: 620, w: 700, label: "INTERCEPTOR DRONES", color: C.amber, t0: T.which + 0.4 },
-            { y: 510, w: 460, label: "DIRECTED ENERGY", color: "#9BE8FF", t0: T.top - 0.1 },
-          ].map((row) => {
+            { y: 810, w: 1180, label: "SENSORS · EW", color: C.cyan, t0: T.theyll + 0.1 },
+            { y: 700, w: 940, label: "GUNS · ROCKETS", color: C.green, t0: T.theyll + 0.8 },
+            { y: 590, w: 700, label: "INTERCEPTOR DRONES", color: C.amber, t0: T.future - 0.5 },
+            { y: 480, w: 460, label: "DIRECTED ENERGY", color: "#9BE8FF", t0: T.future + 0.2 },
+          ].map((row, i) => {
             const p = prog(t, row.t0, row.t0 + 0.5, "back.out(1.6)");
             if (p <= 0) return null;
             return (
               <g key={row.label} opacity={p}>
                 <rect x={960 - (row.w * p) / 2} y={row.y - 46} width={row.w * p} height={92} rx={10} fill={C.ink} fillOpacity={0.9} stroke={row.color} strokeWidth={4} />
+                <rect x={960 - (row.w * p) / 2} y={row.y - 46} width={row.w * p} height={92} rx={10} fill="none" stroke={row.color} strokeWidth={3} strokeDasharray="18 22" strokeDashoffset={(i % 2 ? 1 : -1) * t * 40} opacity={0.6} />
                 <Tag x={960} y={row.y} text={row.label} p={p} size={28} accent={row.color} />
               </g>
             );
           })}
+          {/* "won't replace every weapon": the top slot stays open until the missiles are named */}
+          {t > T.replace - 0.3 && crown < 1 && (
+            <g opacity={prog(t, T.replace - 0.3, T.replace + 0.2) * (1 - crown)}>
+              <rect x={730} y={294} width={460} height={112} rx={12} fill="none" stroke={C.red} strokeWidth={5} strokeDasharray="16 14" strokeDashoffset={-t * 30} />
+              <Tag x={960} y={350} text="?" p={1} size={40} accent={C.red} />
+            </g>
+          )}
           {crown > 0 && (
-            <g transform={`translate(960 ${380 - 20 * crown})`} opacity={crown}>
+            <g transform={`translate(960 ${350 - 20 * crown})`} opacity={crown}>
               <rect x={-230} y={-56} width={460} height={112} rx={12} fill={C.ink} fillOpacity={0.94} stroke={C.red} strokeWidth={6} />
               <Tag x={0} y={0} text="EXPENSIVE MISSILES" p={crown} size={32} accent={C.red} />
               <Pulse x={0} y={0} p={prog(t, T.there, T.there + 1, "none")} r={320} color={C.red} width={8} />
@@ -139,14 +147,14 @@ export const Sustain: React.FC = () => {
           {/* the two systems that stay at the top */}
           {t > T.patriot - 0.4 && (
             <g opacity={win(t, T.patriot - 0.4, T.change - 0.2, 0.3, 0.4)}>
-              <g transform="translate(520 640) scale(0.55)">
+              <g transform="translate(250 600) scale(0.5)">
                 <LauncherSide elev={42} />
               </g>
-              <Tag x={520} y={720} text="PATRIOT" p={prog(t, T.patriot, T.patriot + 0.5, "none")} size={28} accent={C.red} />
-              <g transform="translate(1420 620) scale(0.8)">
+              <Tag x={250} y={660} text="PATRIOT" p={prog(t, T.patriot, T.patriot + 0.5, "none")} size={28} accent={C.red} />
+              <g transform="translate(1690 560) scale(0.7)">
                 <Interceptor kind="aim120" flame={0.5} r={-20} />
               </g>
-              <Tag x={1420} y={720} text="AIM-120" p={prog(t, T.aim, T.aim + 0.5, "none")} size={28} accent={C.red} />
+              <Tag x={1690} y={660} text="AIM-120" p={prog(t, T.aim, T.aim + 0.5, "none")} size={28} accent={C.red} />
             </g>
           )}
           {/* not the first answer any more */}
@@ -223,6 +231,7 @@ export const Sustain: React.FC = () => {
               <g key={c.label} opacity={p}>
                 <g transform={`translate(${c.x} 420) scale(${p})`}>
                   <circle r={112} fill={C.ink} fillOpacity={0.9} stroke={C.green} strokeWidth={5} />
+                  <circle r={136} fill="none" stroke={C.green} strokeWidth={3} strokeDasharray="10 14" opacity={0.5} transform={`rotate(${t * 28})`} />
                   <g transform="scale(0.45) translate(0 120)">
                     {c.kind === "laser" && <LaserTurret beam={0} />}
                     {c.kind === "mw" && <MicrowaveEmitter fire={0.7} />}
@@ -255,6 +264,7 @@ export const Sustain: React.FC = () => {
               <g key={c.label} opacity={p}>
                 <g transform={`translate(${c.x} 520) scale(${0.85 * p})`}>
                   <circle r={110} fill={C.ink} fillOpacity={0.9} stroke={C.cyan} strokeWidth={5} />
+                  <circle r={134} fill="none" stroke={C.cyan} strokeWidth={3} strokeDasharray="10 14" opacity={0.5} transform={`rotate(${-t * 28})`} />
                   {c.kind === "sensors" ? <Glyph kind="radar" s={1} /> : <Passive kind={c.kind} s={0.95} />}
                 </g>
                 <Tag x={c.x} y={680} text={c.label} p={prog(t, c.t0, c.t0 + 0.4, "none")} size={24} accent={C.cyan} />

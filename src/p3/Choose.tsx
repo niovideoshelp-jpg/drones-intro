@@ -104,6 +104,7 @@ export const Choose: React.FC = () => {
                 <g key={f.label} opacity={p}>
                   <g transform={`translate(${f.x} 470) scale(${p})`}>
                     <circle r={126} fill={C.ink} fillOpacity={0.9} stroke={C.red} strokeWidth={5} />
+                    <circle r={150} fill="none" stroke={C.red} strokeWidth={3} strokeDasharray="10 14" opacity={0.5} transform={`rotate(${t * 28})`} />
                     <g transform="scale(0.5) translate(0 120)">
                       {i === 0 && <LaserTurret beam={0} />}
                       {i === 2 && <SPAAG fire={0.3} />}
@@ -137,11 +138,11 @@ export const Choose: React.FC = () => {
 
         {concA > 0 && (
           <g opacity={concA}>
-            <g transform="translate(540 430)">
+            <g transform={`translate(${540 + Math.sin(t * 1.3) * 16} ${430 + Math.sin(t * 2.1) * 12})`}>
               <ShahedTop s={0.42} r={-90} />
               <PriceTag x={-150} y={168} text="$20,000" size={50} color={C.amber} s={prog(t, T.d20 - 0.2, T.d20 + 0.3, "back.out(2)")} />
             </g>
-            <g transform="translate(1380 430)">
+            <g transform={`translate(1380 ${430 + Math.cos(t * 1.7) * 12})`}>
               <Interceptor kind="pac3" s={0.85} r={-20} flame={0.4} />
               <PriceTag x={-130} y={168} text="$1M" size={50} color={C.red} s={prog(t, T.millionDollar - 0.2, T.millionDollar + 0.3, "back.out(2)")} />
             </g>
@@ -161,6 +162,8 @@ export const Choose: React.FC = () => {
         {rulesA > 0 && (
           <g opacity={rulesA}>
             <Tag x={960} y={180} text="HOW TO CHOOSE" p={prog(t, T.ignore - 0.3, T.ignore + 0.3, "none")} size={44} accent={C.cream} />
+            {/* a read-head running down the list keeps the rules alive between entries */}
+            <rect x={300} y={300 + (((t - T.ignore) * 0.45) % 1 + 1) % 1 * 580} width={1320} height={10} rx={5} fill={C.cream} opacity={0.18} />
             {RULES.map((r, i) => {
               const p = ease("back.out(1.5)")(clamp01((t - r.t + 0.25) / 0.5));
               if (p <= 0) return null;
@@ -197,7 +200,7 @@ export const Choose: React.FC = () => {
             {[0, 1, 2].map((i) => {
               const p = ease("back.out(1.6)")(clamp01((t - T.sources + 1.1 - i * 0.2) / 0.6));
               if (p <= 0) return null;
-              return <DocPage key={i} x={700 + i * 260} y={440} s={0.52 * p} r={(i - 1) * 8} lines={prog(t, T.sources, T.description)} chart={prog(t, T.sources + 0.3, T.description + 0.5)} check={prog(t, T.check, T.check + 0.5)} tab={[C.blue, C.amber, C.red][i]} />;
+              return <DocPage key={i} x={700 + i * 260} y={440 + Math.sin(t * 1.6 + i * 1.2) * 10} s={0.52 * p} r={(i - 1) * 8} lines={prog(t, T.sources, T.description)} chart={prog(t, T.sources + 0.3, T.description + 0.5)} check={prog(t, T.check, T.check + 0.5)} tab={[C.blue, C.amber, C.red][i]} />;
             })}
             <g transform={`translate(430 700) scale(${0.5 * prog(t, T.description - 0.2, T.description + 0.4, "back.out(2)")})`}>
               <ChainLink join={1} />

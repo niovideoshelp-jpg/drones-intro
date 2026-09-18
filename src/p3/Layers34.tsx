@@ -75,7 +75,7 @@ export const Layers34: React.FC = () => {
 
   /* ---- guns and rockets ---- */
   const gunA = win(t, T.when - 0.2, T.physical - 0.4, 0.4, 0.5);
-  const fire = win(t, T.gepard - 0.3, T.but, 0.3, 0.6);
+  const fire = win(t, T.guns, T.but, 0.4, 0.6);
   const burst = prog(t, T.airburst - 0.2, T.ammunition + 0.6, "none");
   const rocket = prog(t, T.guided - 0.2, T.apkws + 0.8, "power1.in");
   const priceP = prog(t, T.tens - 0.2, T.dollars + 0.3, "back.out(2)");

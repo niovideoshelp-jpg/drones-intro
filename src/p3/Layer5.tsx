@@ -122,7 +122,7 @@ export const Layer5: React.FC = () => {
       {progA > 0 && (
         <g opacity={progA}>
           {[
-            { t0: T.ironbeam, label: "IRON BEAM", sub: "ISRAEL", x: 430 },
+            { t0: T.israel, label: "IRON BEAM", sub: "ISRAEL", x: 430 },
             { t0: T.states, label: "US LASERS", sub: "UNITED STATES", x: 960 },
             { t0: T.microwave, label: "HIGH-POWER MICROWAVE", sub: "UNITED STATES", x: 1490 },
           ].map((p, i) => {
@@ -147,6 +147,7 @@ export const Layer5: React.FC = () => {
           <g transform="translate(430 930) scale(0.95)">
             <MicrowaveEmitter fire={mwFire} />
           </g>
+          <Pulse x={430} y={760} p={((t * 0.5) % 1 + 1) % 1} r={520} color={C.cyan} width={4} />
           {Array.from({ length: 12 }, (_, i) => {
             const x = 900 + (i % 4) * 230 + rnd(i, 2) * 60;
             const y = 260 + Math.floor(i / 4) * 170 + rnd(i, 3) * 40;
@@ -154,7 +155,7 @@ export const Layer5: React.FC = () => {
             const down = prog(t, downT, downT + 1.4, "power2.in");
             return (
               <g key={i}>
-                <ShahedTop x={x} y={y + down * 520} r={-90 + down * 220} s={0.22} opacity={1 - down * 0.5} />
+                <ShahedTop x={x + (1 - down) * Math.sin(t * 1.6 + i) * 14} y={y + down * 520 + (1 - down) * Math.cos(t * 1.3 + i * 2) * 10} r={-90 + down * 220} s={0.22} opacity={1 - down * 0.5} />
                 {down > 0.05 && down < 0.4 && <Pulse x={x} y={y} p={down / 0.4} r={120} color={C.cyan} width={5} />}
               </g>
             );
@@ -172,11 +173,14 @@ export const Layer5: React.FC = () => {
             { t0: T.maturity, label: "MATURITY", x: 1490 },
           ].map((c) => {
             const p = ease("back.out(1.6)")(clamp01((t - c.t0 + 0.3) / 0.5));
-            return p > 0 ? (
-              <g key={c.label} opacity={p}>
-                <g transform={`translate(${c.x} 400) scale(${p})`}>
+            /* the three open questions are on the board from "miracle", lit when each is named */
+            const ghost = prog(t, T.miracle + 0.1, T.miracle + 0.7);
+            return p > 0 || ghost > 0 ? (
+              <g key={c.label} opacity={Math.max(p, 0.4 * ghost)}>
+                <g transform={`translate(${c.x} 400) scale(${Math.max(p, 0.85 * ghost)})`}>
                   <circle r={104} fill={C.ink} fillOpacity={0.9} stroke={C.red} strokeWidth={5} />
-                  <Big x={0} y={26} text="!" size={92} color={C.red} />
+                  <circle r={128} fill="none" stroke={C.red} strokeWidth={3} strokeDasharray="10 14" opacity={0.5} transform={`rotate(${t * 30})`} />
+                  {p > 0 && <Big x={0} y={26} text="!" size={92} color={C.red} opacity={p} />}
                 </g>
                 <Tag x={c.x} y={540} text={c.label} p={prog(t, c.t0, c.t0 + 0.5, "none")} size={28} accent={C.red} />
               </g>
@@ -194,6 +198,7 @@ export const Layer5: React.FC = () => {
               <g key={w.label} opacity={p}>
                 <g transform={`translate(${w.x} 730) scale(${p})`}>
                   <circle r={104} fill={C.ink} fillOpacity={0.9} stroke="#9BE8FF" strokeWidth={5} />
+                  <circle r={128} fill="none" stroke="#9BE8FF" strokeWidth={3} strokeDasharray="10 14" opacity={0.5} transform={`rotate(${-t * 30})`} />
                   <Weather kind={w.kind} s={0.9} />
                 </g>
                 <Tag x={w.x} y={862} text={w.label} p={prog(t, w.t0, w.t0 + 0.4, "none")} size={26} accent="#9BE8FF" />

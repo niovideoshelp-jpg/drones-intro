@@ -11,6 +11,7 @@ import { FPS } from "./design";
 
 export const DURATION = Math.ceil(177.4 * FPS);
 export const P1_DURATION = Math.ceil(P1_DURATION_S * FPS);
+const SCAN_FPS = 6;
 export const P2_DURATION = Math.ceil(P2_DURATION_S * FPS);
 export const P3_DURATION = Math.ceil(P3_DURATION_S * FPS);
 
@@ -24,5 +25,8 @@ export const Root: React.FC = () => (
     <Composition id="Part2-preview" component={Film2} width={1920} height={1080} fps={FPS} durationInFrames={P2_DURATION} defaultProps={{ preview: true, audio: true }} />
     <Composition id="Part3" component={Film3} width={1920} height={1080} fps={FPS} durationInFrames={P3_DURATION} defaultProps={{ preview: false, audio: true }} />
     <Composition id="Part3-preview" component={Film3} width={1920} height={1080} fps={FPS} durationInFrames={P3_DURATION} defaultProps={{ preview: true, audio: true }} />
+    {/* 6 fps samples of the same animation (time is frame / fps): scripts/activity.mjs checks every second in minutes, not a full render */}
+    <Composition id="Part2-scan" component={Film2} width={1920} height={1080} fps={SCAN_FPS} durationInFrames={Math.ceil(P2_DURATION_S * SCAN_FPS)} defaultProps={{ preview: true, audio: false }} />
+    <Composition id="Part3-scan" component={Film3} width={1920} height={1080} fps={SCAN_FPS} durationInFrames={Math.ceil(P3_DURATION_S * SCAN_FPS)} defaultProps={{ preview: true, audio: false }} />
   </>
 );

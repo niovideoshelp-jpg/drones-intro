@@ -143,6 +143,7 @@ export const Reliability: React.FC = () => {
               <g key={c.label} opacity={p}>
                 <g transform={`translate(${x} 450) scale(${p})`}>
                   <circle r={130} fill={C.ink} fillOpacity={0.9} stroke={C.green} strokeWidth={6} />
+                  <circle r={156} fill="none" stroke={C.green} strokeWidth={3} strokeDasharray="10 14" opacity={0.5} transform={`rotate(${(i % 2 ? -1 : 1) * t * 28})`} />
                   {i === 0 && <path d="M-70,40 L70,40 L48,0 L-48,0Z M-14,0 L-14,-18 L70,-70 M14,0 L14,-18 L86,-52" fill={C.olive} stroke={C.ink} strokeWidth={6} strokeLinejoin="round" />}
                   {i === 1 && <JammerMastRef />}
                   {i === 2 && <FPVTop s={0.7} payload={false} />}
