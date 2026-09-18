@@ -70,7 +70,7 @@ export const Open3: React.FC = () => {
               strokeWidth={10}
               strokeLinecap="round"
             />
-            {curve > 0.1 && <PriceTag x={330 + curve * 1290} y={800 - Math.pow(curve, 2.1) * 520} text="$$$" size={46} color={C.red} s={clamp01(curve * 2)} />}
+            {curve > 0.1 && <PriceTag x={330 + curve * 1290} y={800 - Math.pow(curve, 2.1) * 520 + Math.sin(t * 2.4) * 8} text="$$$" size={46} color={C.red} s={clamp01(curve * 2)} />}
           </g>
           <g transform={`translate(960 ${300 - 20 * (1 - titleIn)}) scale(${titleIn})`}>
             <text textAnchor="middle" fontFamily={F.oswald} fontWeight={700} fontSize={82} fill={C.cream} stroke={C.ink} strokeWidth={9} paintOrder="stroke" letterSpacing={2}>
@@ -87,6 +87,7 @@ export const Open3: React.FC = () => {
         <g opacity={noneA}>
           <g transform={`translate(960 640) scale(${0.95 * noneP})`}>
             <circle r={230} fill={C.ink} fillOpacity={0.9} stroke={C.cream} strokeWidth={6} />
+            <circle r={262} fill="none" stroke={C.cream} strokeWidth={3} strokeDasharray="14 18" opacity={0.45} transform={`rotate(${t * 30})`} />
             <g transform="translate(0 90) scale(0.85)">
               <LaserTurret beam={0} angle={-30} />
             </g>
@@ -116,6 +117,12 @@ export const Open3: React.FC = () => {
               </g>
             );
           })}
+          {/* a sweep crossing every layer, so the stack never sits still */}
+          {(() => {
+            const k = ((t - T.combining) * 0.4) % 1;
+            const a = Math.PI * (1 + (k < 0.5 ? k * 2 : 2 - k * 2));
+            return <path d={`M${CX},${CY + 40} L${CX + Math.cos(a) * 640},${CY + 40 + Math.sin(a) * 640 * 0.72}`} stroke={C.cream} strokeWidth={4} opacity={0.35 * prog(t, T.combining, T.combining + 0.6)} />;
+          })()}
           <g transform={`translate(${CX} ${CY + 40})`}>
             <circle r={26} fill={C.cream} stroke={C.ink} strokeWidth={5} />
             <circle r={54} fill="none" stroke={C.cream} strokeWidth={3} strokeDasharray="8 10" transform={`rotate(${t * 25})`} />
