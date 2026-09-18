@@ -229,6 +229,7 @@ export const Layers34: React.FC = () => {
               <g key={d.label} opacity={p}>
                 <g transform={`translate(${d.x} 430) scale(${p})`}>
                   <circle r={110} fill={C.ink} fillOpacity={0.9} stroke={C.amber} strokeWidth={5} />
+                  <circle r={134} fill="none" stroke={C.amber} strokeWidth={3} strokeDasharray="10 14" opacity={0.5} transform={`rotate(${t * 30})`} />
                   <Glyph kind={d.kind} s={1} color={C.amber} />
                 </g>
                 <Tag x={d.x} y={580} text={d.label} p={prog(t, d.t0, d.t0 + 0.5, "none")} size={26} accent={C.amber} />
