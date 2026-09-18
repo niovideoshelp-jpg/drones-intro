@@ -137,7 +137,6 @@ jobs:
           grep -q "YMIN=0" dist/VERIFY.txt || (echo "alpha plane missing" && exit 1)
           (cd public/audio && zip -9 "../../dist/${NAME}_audio_stems.zip" "${PREFIX}mix.wav" "${PREFIX}voice.wav" "${PREFIX}music.wav" "${PREFIX}sfx.wav")
           ffmpeg -y -c:v libvpx-vp9 -i "dist/${NAME}_alpha.webm" -filter_complex "color=c=0x3b4447:s=1920x1080:r=30[bg];[bg][0:v]overlay=shortest=1,scale=1280:720,format=yuv420p[v]" -map "[v]" -map 0:a -c:v libx264 -crf 24 -preset veryfast -c:a aac -b:a 192k -movflags +faststart "dist/${NAME}_quicklook.mp4"
-          for i in $(seq 1 $CHUNKS); do gh release delete-asset "${{ needs.prepare.outputs.tag }}" "webm-part$i.webm" -y; done
       - name: Publish
         run: |
           for x in dist/*; do
@@ -150,3 +149,5 @@ jobs:
           NOTES="Review render (half resolution, grey background) with the final mix."
           if [ "${{ inputs.mode }}" = "final" ]; then NOTES="${NAME}_alpha.webm: full part, VP9 with alpha + mix (import straight into Filmora). Audio stems and a quick-look MP4 on grey."; fi
           gh release edit "${{ needs.prepare.outputs.tag }}" --notes "$NOTES"
+          # the chunks go only once the assembled files are safely published — a failed upload must not cost the render
+          if [ "${{ inputs.mode }}" = "final" ]; then for i in $(seq 1 $CHUNKS); do gh release delete-asset "${{ needs.prepare.outputs.tag }}" "webm-part$i.webm" -y || true; done; fi
