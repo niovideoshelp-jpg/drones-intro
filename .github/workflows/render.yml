@@ -46,7 +46,7 @@ jobs:
           TAG="$NAME-${{ inputs.tag }}"
           if [ "${{ inputs.mode }}" = "review" ]; then TAG="$TAG-review"; fi
           gh release delete "$TAG" -y --cleanup-tag || true
-          gh release create "$TAG" --prerelease --title "$NAME ${{ inputs.tag }} (${{ inputs.mode }})" --notes "Building…" --target "${{ github.sha }}"
+          gh release create "$TAG" --draft --prerelease --title "$NAME ${{ inputs.tag }} (${{ inputs.mode }})" --notes "Building…" --target "${{ github.sha }}"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "chunks=[$(seq 0 $((CHUNKS - 1)) | paste -sd, -)]" >> "$GITHUB_OUTPUT"
 
